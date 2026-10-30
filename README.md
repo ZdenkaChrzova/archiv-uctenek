@@ -9,3 +9,4 @@ Soukromá PWA pro ukládání účtenek, faktur a záručních dokladů. Data a 
 4. Uložte nastavení a po zveřejnění otevřete adresu webu.
 
 Důležité: pravidelně v aplikaci používejte Export zálohy.
+Aplikace publikována pomocí GitHub Pages.

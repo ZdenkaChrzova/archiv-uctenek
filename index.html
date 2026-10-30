@@ -42,11 +42,19 @@
         <label>Konec záruky<input id="warranty" type="date"></label>
         <label>Číslo dokladu<input id="number" maxlength="60" placeholder="Variabilní symbol / číslo faktury"></label>
         <label class="full">Poznámka<textarea id="notes" maxlength="600" placeholder="Doplňující informace"></textarea></label>
-        <label class="full filebox">Fotografie nebo dokument
-          <input id="file" type="file" accept="image/*,.pdf" capture="environment">
-          <span class="filehint">Na telefonu lze doklad vyfotit. Podporované jsou obrázky a PDF. Příloha zůstává uložena v tomto prohlížeči.</span>
+        <div class="full filebox">
+          <strong>Fotografie nebo dokument</strong>
+          <div class="actions" style="margin-top:10px">
+            <label class="btn primary" style="display:inline-block">Vyfotit doklad
+              <input id="cameraFile" type="file" accept="image/*" capture="environment" hidden>
+            </label>
+            <label class="btn secondary" style="display:inline-block">Vybrat fotografii nebo dokument
+              <input id="file" type="file" accept="image/*,.pdf,application/pdf" hidden>
+            </label>
+          </div>
+          <span class="filehint">První volba otevře fotoaparát. Druhá umožní vybrat existující fotografii nebo PDF ze zařízení.</span>
           <span class="preview" id="preview"><img class="thumb" id="thumb" alt="Náhled"><span id="fileName"></span></span>
-        </label>
+        </div>
       </div>
       <div class="actions"><button class="btn primary" type="submit" id="saveBtn">Uložit doklad</button><button class="btn secondary" type="button" id="cancelEdit" hidden>Zrušit úpravu</button><button class="btn ghost" type="reset">Vyčistit</button></div>
     </form>
@@ -74,7 +82,9 @@ function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt
 function money(v,c){if(v===''||v==null)return '';return new Intl.NumberFormat('cs-CZ',{style:'currency',currency:c||'CZK'}).format(Number(v))}
 function date(v){return v?new Intl.DateTimeFormat('cs-CZ').format(new Date(v+'T12:00:00')):''}
 function resetForm(){editingId=null;currentAttachment=null;$('formTitle').textContent='Přidat doklad';$('saveBtn').textContent='Uložit doklad';$('cancelEdit').hidden=true;$('receiptForm').reset();$('preview').classList.remove('show');$('date').value=new Date().toISOString().slice(0,10)}
-$('file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;currentAttachment={blob:f,name:f.name,type:f.type};$('fileName').textContent=f.name;$('preview').classList.add('show');if(f.type.startsWith('image/')){$('thumb').src=URL.createObjectURL(f);$('thumb').style.display='block'}else $('thumb').style.display='none'});
+function selectAttachment(e){const f=e.target.files[0];if(!f)return;currentAttachment={blob:f,name:f.name,type:f.type};$('fileName').textContent=f.name;$('preview').classList.add('show');if(f.type.startsWith('image/')){$('thumb').src=URL.createObjectURL(f);$('thumb').style.display='block'}else $('thumb').style.display='none'}
+$('file').addEventListener('change',selectAttachment);
+$('cameraFile').addEventListener('change',selectAttachment);
 $('receiptForm').addEventListener('submit',async e=>{e.preventDefault();const old=editingId?await get(editingId):{};const item={...old,title:$('title').value.trim(),vendor:$('vendor').value.trim(),date:$('date').value,amount:$('amount').value,currency:$('currency').value,category:$('category').value,warranty:$('warranty').value,number:$('number').value.trim(),notes:$('notes').value.trim(),updatedAt:new Date().toISOString()};if(editingId)item.id=editingId;else item.createdAt=item.updatedAt;if(currentAttachment)item.attachment=currentAttachment;await put(item);resetForm();await render()});
 $('receiptForm').addEventListener('reset',()=>setTimeout(()=>{currentAttachment=null;$('preview').classList.remove('show')},0));$('cancelEdit').onclick=resetForm;
 async function edit(id){const x=await get(id);editingId=id;['title','vendor','date','amount','currency','category','warranty','number','notes'].forEach(k=>$(k).value=x[k]||'');currentAttachment=x.attachment||null;$('formTitle').textContent='Upravit doklad';$('saveBtn').textContent='Uložit změny';$('cancelEdit').hidden=false;if(x.attachment){$('fileName').textContent=x.attachment.name;$('preview').classList.add('show');if(x.attachment.type.startsWith('image/')){$('thumb').src=URL.createObjectURL(x.attachment.blob);$('thumb').style.display='block'}else $('thumb').style.display='none'}window.scrollTo({top:0,behavior:'smooth'})}

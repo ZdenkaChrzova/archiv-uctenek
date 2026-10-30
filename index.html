@@ -16,7 +16,7 @@
     header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}.brand{display:flex;gap:13px;align-items:center}.logo{width:48px;height:48px;border-radius:15px;background:var(--brand);display:grid;place-items:center;color:#fff;font-size:25px;box-shadow:var(--shadow)}
     h1{font-size:clamp(24px,4vw,36px);margin:0;letter-spacing:-.04em}.subtitle{color:var(--muted);margin:2px 0 0}.status{color:var(--muted);font-size:13px}
     .panel{background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.75);border-radius:24px;box-shadow:var(--shadow);padding:22px;margin-bottom:20px}.panel h2{margin:0 0 17px;font-size:20px}
-    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.full{grid-column:1/-1}label{display:grid;gap:6px;font-weight:650;font-size:13px}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:#fff;color:var(--ink);outline:none}input:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(15,118,110,.12)}textarea{min-height:85px;resize:vertical}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.full{grid-column:1/-1}.grid>label,.grid>div{min-width:0}label{display:grid;gap:6px;font-weight:650;font-size:13px}input,select,textarea{width:100%;min-width:0;max-width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:#fff;color:var(--ink);outline:none}input:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(15,118,110,.12)}textarea{min-height:85px;resize:vertical}input[type="date"]{display:block;min-height:44px}
     .filebox{border:1.5px dashed #9abbb5;border-radius:16px;padding:16px;background:#f5fbf9}.filehint{font-size:12px;color:var(--muted);font-weight:400}.preview{display:none;margin-top:10px;gap:10px;align-items:center}.preview.show{display:flex}.thumb{width:76px;height:76px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
     .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:17px}.btn{border:0;border-radius:12px;padding:10px 15px;font-weight:750}.primary{background:var(--brand);color:#fff}.primary:hover{background:var(--brand2)}.secondary{background:#e9f3f1;color:var(--brand2)}.ghost{background:#f1f4f3;color:#334743}.danger{background:#fff0ef;color:var(--danger)}
     .tools{display:grid;grid-template-columns:1fr 190px auto;gap:10px;margin-bottom:15px}.count{color:var(--muted);margin:0 0 12px}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.card{border:1px solid var(--line);border-radius:18px;padding:16px;background:#fff;display:grid;gap:12px}.cardtop{display:flex;justify-content:space-between;gap:10px}.card h3{margin:0;font-size:17px}.meta{color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:7px 12px}.amount{font-weight:850;color:var(--brand2);font-size:18px}.notes{margin:0;color:#425451;white-space:pre-wrap}.cardactions{display:flex;gap:8px;flex-wrap:wrap}.empty{text-align:center;padding:40px 15px;color:var(--muted)}.badge{background:#edf7f5;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:750;color:var(--brand2)}
@@ -39,7 +39,30 @@
         <label>Částka<input id="amount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label>
         <label>Měna<select id="currency"><option>CZK</option><option>EUR</option><option>USD</option><option>GBP</option><option>EGP</option></select></label>
         <label>Kategorie<select id="category"><option>Účtenka</option><option>Faktura</option><option>Záruční list</option><option>Smlouva</option><option>Jiné</option></select></label>
-        <label>Konec záruky<input id="warranty" type="date"></label>
+        <div>
+          <label>Konec záruky
+            <select id="warrantyMode">
+              <option value="months">Délka záruky v měsících</option>
+              <option value="date">Vybrat datum z kalendáře</option>
+            </select>
+          </label>
+          <label id="warrantyMonthsWrap" style="margin-top:8px">Počet měsíců
+            <select id="warrantyMonths">
+              <option value="">Bez záruky</option>
+              <option value="3">3 měsíce</option>
+              <option value="6">6 měsíců</option>
+              <option value="12">12 měsíců</option>
+              <option value="24" selected>24 měsíců</option>
+              <option value="36">36 měsíců</option>
+              <option value="48">48 měsíců</option>
+              <option value="60">60 měsíců</option>
+            </select>
+          </label>
+          <label id="warrantyDateWrap" style="margin-top:8px" hidden>Datum konce záruky
+            <input id="warranty" type="date">
+          </label>
+          <span class="filehint" id="warrantyResult"></span>
+        </div>
         <label>Číslo dokladu<input id="number" maxlength="60" placeholder="Variabilní symbol / číslo faktury"></label>
         <label class="full">Poznámka<textarea id="notes" maxlength="600" placeholder="Doplňující informace"></textarea></label>
         <div class="full filebox">
@@ -81,13 +104,16 @@ async function remove(id){return req(db.transaction(STORE,'readwrite').objectSto
 function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function money(v,c){if(v===''||v==null)return '';return new Intl.NumberFormat('cs-CZ',{style:'currency',currency:c||'CZK'}).format(Number(v))}
 function date(v){return v?new Intl.DateTimeFormat('cs-CZ').format(new Date(v+'T12:00:00')):''}
-function resetForm(){editingId=null;currentAttachment=null;$('formTitle').textContent='Přidat doklad';$('saveBtn').textContent='Uložit doklad';$('cancelEdit').hidden=true;$('receiptForm').reset();$('preview').classList.remove('show');$('date').value=new Date().toISOString().slice(0,10)}
+function addMonths(dateString,months){if(!dateString||!months)return '';const d=new Date(dateString+'T12:00:00'),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+Number(months));const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return d.toISOString().slice(0,10)}
+function updateWarranty(){const byMonths=$('warrantyMode').value==='months';$('warrantyMonthsWrap').hidden=!byMonths;$('warrantyDateWrap').hidden=byMonths;if(byMonths)$('warranty').value=addMonths($('date').value,$('warrantyMonths').value);$('warrantyResult').textContent=$('warranty').value?'Konec záruky: '+date($('warranty').value):''}
+$('warrantyMode').onchange=updateWarranty;$('warrantyMonths').onchange=updateWarranty;$('date').onchange=updateWarranty;$('warranty').onchange=updateWarranty;
+function resetForm(){editingId=null;currentAttachment=null;$('formTitle').textContent='Přidat doklad';$('saveBtn').textContent='Uložit doklad';$('cancelEdit').hidden=true;$('receiptForm').reset();$('preview').classList.remove('show');$('date').value=new Date().toISOString().slice(0,10);$('warrantyMode').value='months';$('warrantyMonths').value='24';updateWarranty()}
 function selectAttachment(e){const f=e.target.files[0];if(!f)return;currentAttachment={blob:f,name:f.name,type:f.type};$('fileName').textContent=f.name;$('preview').classList.add('show');if(f.type.startsWith('image/')){$('thumb').src=URL.createObjectURL(f);$('thumb').style.display='block'}else $('thumb').style.display='none'}
 $('file').addEventListener('change',selectAttachment);
 $('cameraFile').addEventListener('change',selectAttachment);
 $('receiptForm').addEventListener('submit',async e=>{e.preventDefault();const old=editingId?await get(editingId):{};const item={...old,title:$('title').value.trim(),vendor:$('vendor').value.trim(),date:$('date').value,amount:$('amount').value,currency:$('currency').value,category:$('category').value,warranty:$('warranty').value,number:$('number').value.trim(),notes:$('notes').value.trim(),updatedAt:new Date().toISOString()};if(editingId)item.id=editingId;else item.createdAt=item.updatedAt;if(currentAttachment)item.attachment=currentAttachment;await put(item);resetForm();await render()});
 $('receiptForm').addEventListener('reset',()=>setTimeout(()=>{currentAttachment=null;$('preview').classList.remove('show')},0));$('cancelEdit').onclick=resetForm;
-async function edit(id){const x=await get(id);editingId=id;['title','vendor','date','amount','currency','category','warranty','number','notes'].forEach(k=>$(k).value=x[k]||'');currentAttachment=x.attachment||null;$('formTitle').textContent='Upravit doklad';$('saveBtn').textContent='Uložit změny';$('cancelEdit').hidden=false;if(x.attachment){$('fileName').textContent=x.attachment.name;$('preview').classList.add('show');if(x.attachment.type.startsWith('image/')){$('thumb').src=URL.createObjectURL(x.attachment.blob);$('thumb').style.display='block'}else $('thumb').style.display='none'}window.scrollTo({top:0,behavior:'smooth'})}
+async function edit(id){const x=await get(id);editingId=id;['title','vendor','date','amount','currency','category','warranty','number','notes'].forEach(k=>$(k).value=x[k]||'');let matched='';for(const m of ['3','6','12','24','36','48','60'])if(addMonths(x.date,m)===x.warranty)matched=m;if(matched){$('warrantyMode').value='months';$('warrantyMonths').value=matched}else{$('warrantyMode').value='date'}updateWarranty();currentAttachment=x.attachment||null;$('formTitle').textContent='Upravit doklad';$('saveBtn').textContent='Uložit změny';$('cancelEdit').hidden=false;if(x.attachment){$('fileName').textContent=x.attachment.name;$('preview').classList.add('show');if(x.attachment.type.startsWith('image/')){$('thumb').src=URL.createObjectURL(x.attachment.blob);$('thumb').style.display='block'}else $('thumb').style.display='none'}window.scrollTo({top:0,behavior:'smooth'})}
 async function attachment(id){const x=await get(id);if(!x.attachment)return;const u=URL.createObjectURL(x.attachment.blob),a=document.createElement('a');a.href=u;a.download=x.attachment.name||'doklad';a.target='_blank';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}
 function askDelete(id){deleteId=id;$('confirm').showModal()}
 $('cancelDelete').onclick=()=>$('confirm').close();$('confirmDelete').onclick=async()=>{await remove(deleteId);$('confirm').close();if(editingId===deleteId)resetForm();render()};

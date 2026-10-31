@@ -101,6 +101,9 @@
     .detail-pdf{display:grid;place-items:center;width:100%;min-height:180px;border:0;background:transparent;cursor:pointer}
     .detail-pdf small{display:block;margin-top:8px;color:var(--brand2);font-size:13px;font-weight:750}
     @media(max-width:720px){.cards.compact .card{grid-template-columns:minmax(0,1fr) auto}.cards.compact .cardactions{display:grid}.cards.compact .cardactions [data-v]{min-height:44px;padding:8px 10px}}
+
+    /* v1.7: vlastni kategorie a stitky */
+    .tag-input-hint{color:var(--muted);font-size:11px;font-weight:400}.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.tag{display:inline-flex;align-items:center;padding:4px 8px;color:#344054;background:#f2f4f7;border-radius:999px;font-size:11px;font-weight:700}.tag::before{content:'#';color:var(--brand);margin-right:1px}.detail-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}.detail-tags .tag{font-size:12px}.custom-category[hidden]{display:none}
   </style>
 </head>
 <body>
@@ -118,7 +121,7 @@
         <label>Datum vystavení<input id="date" type="date"></label>
         <label>Částka<input id="amount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label>
         <label>Měna<select id="currency"><option>CZK</option><option>EUR</option><option>USD</option><option>GBP</option><option>EGP</option></select></label>
-        <label>Kategorie<select id="category"><option>Účtenka</option><option>Faktura</option><option>Záruční list</option><option>Smlouva</option><option>Jiné</option></select></label>
+        <div><label>Kategorie<select id="category"><option>Účtenka</option><option>Faktura</option><option>Záruční list</option><option>Smlouva</option><option>Jiné</option><option value="__custom__">Vlastní kategorie…</option></select></label><label class="custom-category" id="customCategoryWrap" style="margin-top:8px" hidden>Vlastní kategorie<input id="customCategory" maxlength="40" placeholder="Např. Servisní protokol"></label></div>
         <div>
           <label>Konec záruky
             <select id="warrantyMode">
@@ -144,7 +147,7 @@
           <span class="filehint" id="warrantyResult"></span>
         </div>
         <label>Číslo dokladu<input id="number" maxlength="60" placeholder="Variabilní symbol / číslo faktury"></label>
-        <label class="full">Poznámka<textarea id="notes" maxlength="600" placeholder="Doplňující informace"></textarea></label>
+        <label class="full">Štítky<input id="tags" maxlength="180" placeholder="Např. elektronika, práce, domácnost"><span class="tag-input-hint">Více štítků odděl čárkou. Jeden doklad může mít více štítků.</span></label><label class="full">Poznámka<textarea id="notes" maxlength="600" placeholder="Doplňující informace"></textarea></label>
         <div class="full filebox">
           <strong>Fotografie nebo dokument</strong>
           <div class="actions" style="margin-top:10px">
@@ -176,7 +179,7 @@
     <div class="list-top"><h2>Uložené doklady</h2><div class="list-controls"><button class="icon-btn" id="toggleFilters" type="button" aria-expanded="false">Filtry</button><button class="icon-btn" id="toggleView" type="button" aria-label="Přepnout zobrazení">☷</button></div></div>
     <div class="filters-wrap" id="filtersWrap" hidden><div class="tools">
       <input id="search" type="search" placeholder="Hledat podle názvu, prodejce nebo čísla…">
-      <select id="filter"><option value="">Všechny kategorie</option><option>Účtenka</option><option>Faktura</option><option>Záruční list</option><option>Smlouva</option><option>Jiné</option></select>
+      <select id="filter" aria-label="Filtrovat podle kategorie"><option value="">Všechny kategorie</option></select><select id="tagFilter" aria-label="Filtrovat podle štítku"><option value="">Všechny štítky</option></select>
       <select id="warrantyFilter" aria-label="Filtrovat podle záruky"><option value="">Všechny záruky</option><option value="active">Aktivní</option><option value="30">Končí do 30 dnů</option><option value="90">Končí do 90 dnů</option><option value="expired">Prošlé</option><option value="none">Bez záruky</option></select>
       <select id="sort" aria-label="Řazení dokladů"><option value="newest">Nejnovější</option><option value="oldest">Nejstarší</option><option value="priceDesc">Nejdražší</option><option value="priceAsc">Nejlevnější</option><option value="title">Podle názvu</option><option value="vendor">Podle prodejce</option><option value="warranty">Nejbližší konec záruky</option></select>
       </div></div>
@@ -205,7 +208,17 @@ function date(v){return v?new Intl.DateTimeFormat('cs-CZ').format(new Date(v+'T1
 function addMonths(dateString,months){if(!dateString||!months)return '';const d=new Date(dateString+'T12:00:00'),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+Number(months));const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return d.toISOString().slice(0,10)}
 function updateWarranty(){const byMonths=$('warrantyMode').value==='months';$('warrantyMonthsWrap').hidden=!byMonths;$('warrantyDateWrap').hidden=byMonths;if(byMonths)$('warranty').value=addMonths($('date').value,$('warrantyMonths').value);$('warrantyResult').textContent=$('warranty').value?'Konec záruky: '+date($('warranty').value):''}
 $('warrantyMode').onchange=updateWarranty;$('warrantyMonths').onchange=updateWarranty;$('date').onchange=updateWarranty;$('warranty').onchange=updateWarranty;
-function resetForm(){editingId=null;currentAttachment=null;$('formTitle').textContent='Přidat doklad';$('saveBtn').textContent='Uložit doklad';$('cancelEdit').hidden=true;$('receiptForm').reset();$('preview').classList.remove('show');$('compressionStatus').textContent='';$('date').value=new Date().toISOString().slice(0,10);$('warrantyMode').value='months';$('warrantyMonths').value='24';updateWarranty()}
+const BASE_CATEGORIES=['Účtenka','Faktura','Záruční list','Smlouva','Jiné'];
+function parseTags(value){const source=Array.isArray(value)?value:String(value||'').split(',');return [...new Set(source.map(x=>String(x).trim().replace(/^#+/,'')).filter(Boolean).map(x=>x.slice(0,30)))].slice(0,12)}
+function updateCategoryInput(){const custom=$('category').value==='__custom__';$('customCategoryWrap').hidden=!custom;if(custom)setTimeout(()=>$('customCategory').focus(),0)}
+$('category').onchange=updateCategoryInput;
+function selectedCategory(){return $('category').value==='__custom__'?$('customCategory').value.trim():$('category').value}
+function fillDynamicFilters(items){
+ const currentCat=$('filter').value,currentTag=$('tagFilter').value,cats=[...new Set(items.map(x=>x.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'cs')),tags=[...new Set(items.flatMap(x=>parseTags(x.tags)))].sort((a,b)=>a.localeCompare(b,'cs'));
+ $('filter').innerHTML='<option value="">Všechny kategorie</option>'+cats.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');$('tagFilter').innerHTML='<option value="">Všechny štítky</option>'+tags.map(x=>`<option value="${esc(x)}">#${esc(x)}</option>`).join('');
+ if(cats.includes(currentCat))$('filter').value=currentCat;if(tags.includes(currentTag))$('tagFilter').value=currentTag;
+}
+function resetForm(){editingId=null;currentAttachment=null;$('formTitle').textContent='Přidat doklad';$('saveBtn').textContent='Uložit doklad';$('cancelEdit').hidden=true;$('receiptForm').reset();$('preview').classList.remove('show');$('compressionStatus').textContent='';$('date').value=new Date().toISOString().slice(0,10);$('warrantyMode').value='months';$('warrantyMonths').value='24';$('customCategory').value='';$('tags').value='';updateCategoryInput();updateWarranty()}
 function fileSize(bytes){if(bytes<1024)return bytes+' B';if(bytes<1048576)return (bytes/1024).toFixed(1)+' kB';return (bytes/1048576).toFixed(1)+' MB'}
 async function compressImage(file,maxSide=1600,quality=.8){
   const bitmap=await createImageBitmap(file),scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height)),w=Math.max(1,Math.round(bitmap.width*scale)),h=Math.max(1,Math.round(bitmap.height*scale));
@@ -224,16 +237,17 @@ async function selectAttachment(e){
 }
 $('file').addEventListener('change',selectAttachment);
 $('cameraFile').addEventListener('change',selectAttachment);
-$('receiptForm').addEventListener('submit',async e=>{e.preventDefault();const old=editingId?await get(editingId):{};const item={...old,title:$('title').value.trim(),vendor:$('vendor').value.trim(),date:$('date').value,amount:$('amount').value,currency:$('currency').value,category:$('category').value,warranty:$('warranty').value,number:$('number').value.trim(),notes:$('notes').value.trim(),updatedAt:new Date().toISOString()};if(editingId)item.id=editingId;else item.createdAt=item.updatedAt;if(currentAttachment)item.attachment=currentAttachment;await put(item);resetForm();$('formPanel').hidden=true;await render()});
+$('receiptForm').addEventListener('submit',async e=>{e.preventDefault();if(!selectedCategory()){alert('Vyplň vlastní kategorii.');$('customCategory').focus();return}const old=editingId?await get(editingId):{};const item={...old,title:$('title').value.trim(),vendor:$('vendor').value.trim(),date:$('date').value,amount:$('amount').value,currency:$('currency').value,category:selectedCategory(),tags:parseTags($('tags').value),warranty:$('warranty').value,number:$('number').value.trim(),notes:$('notes').value.trim(),updatedAt:new Date().toISOString()};if(editingId)item.id=editingId;else item.createdAt=item.updatedAt;if(currentAttachment)item.attachment=currentAttachment;await put(item);resetForm();$('formPanel').hidden=true;await render()});
 $('receiptForm').addEventListener('reset',()=>setTimeout(()=>{currentAttachment=null;$('preview').classList.remove('show')},0));$('cancelEdit').onclick=resetForm;
-async function edit(id){const x=await get(id);$('formPanel').hidden=false;editingId=id;['title','vendor','date','amount','currency','category','warranty','number','notes'].forEach(k=>$(k).value=x[k]||'');let matched='';for(const m of ['3','6','12','24','36','48','60'])if(addMonths(x.date,m)===x.warranty)matched=m;if(matched){$('warrantyMode').value='months';$('warrantyMonths').value=matched}else{$('warrantyMode').value='date'}updateWarranty();currentAttachment=x.attachment||null;$('formTitle').textContent='Upravit doklad';$('saveBtn').textContent='Uložit změny';$('cancelEdit').hidden=false;if(x.attachment){$('fileName').textContent=x.attachment.name;$('preview').classList.add('show');if(x.attachment.type.startsWith('image/')){$('thumb').src=URL.createObjectURL(x.attachment.blob);$('thumb').style.display='block'}else $('thumb').style.display='none'}window.scrollTo({top:0,behavior:'smooth'})}
+async function edit(id){const x=await get(id);$('formPanel').hidden=false;editingId=id;['title','vendor','date','amount','currency','warranty','number','notes'].forEach(k=>$(k).value=x[k]||'');if(BASE_CATEGORIES.includes(x.category||'')){$('category').value=x.category;$('customCategory').value=''}else{$('category').value='__custom__';$('customCategory').value=x.category||''}updateCategoryInput();$('tags').value=parseTags(x.tags).join(', ');let matched='';for(const m of ['3','6','12','24','36','48','60'])if(addMonths(x.date,m)===x.warranty)matched=m;if(matched){$('warrantyMode').value='months';$('warrantyMonths').value=matched}else{$('warrantyMode').value='date'}updateWarranty();currentAttachment=x.attachment||null;$('formTitle').textContent='Upravit doklad';$('saveBtn').textContent='Uložit změny';$('cancelEdit').hidden=false;if(x.attachment){$('fileName').textContent=x.attachment.name;$('preview').classList.add('show');if(x.attachment.type.startsWith('image/')){$('thumb').src=URL.createObjectURL(x.attachment.blob);$('thumb').style.display='block'}else $('thumb').style.display='none'}window.scrollTo({top:0,behavior:'smooth'})}
+
 function closeDetail(){if(detailUrl){URL.revokeObjectURL(detailUrl);detailUrl=null}$('detailDialog').close();detailId=null}
 async function showDetail(id){
   const x=await get(id);if(!x)return;detailId=id;if(detailUrl){URL.revokeObjectURL(detailUrl);detailUrl=null}
   $('detailTitle').textContent=x.title||'Detail dokladu';const wi=warrantyInfo(x.warranty);let preview='<div class="detail-empty">Doklad nemá přílohu.</div>';
   if(x.attachment?.blob){detailUrl=URL.createObjectURL(x.attachment.blob);preview=x.attachment.type?.startsWith('image/')?`<img src="${detailUrl}" alt="Příloha ${esc(x.title)}">`:`<button class="detail-pdf" type="button" aria-label="Otevřít PDF přílohu"><span>PDF<small>Klepnutím otevřít</small></span></button>`}
   $('detailPreview').innerHTML=preview;$('detailPreview').classList.toggle('has-attachment',!!x.attachment?.blob);$('detailPreview').tabIndex=x.attachment?.blob?0:-1;if(x.attachment?.blob){$('detailPreview').onclick=()=>attachment(id);$('detailPreview').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();attachment(id)}}}else{$('detailPreview').onclick=null;$('detailPreview').onkeydown=null}
-  const fields=[['Kategorie',x.category],['Prodejce',x.vendor],['Datum vystavení',date(x.date)],['Částka',x.amount!==''&&x.amount!=null?money(x.amount,x.currency):''],['Číslo dokladu',x.number],['Konec záruky',x.warranty?date(x.warranty):'Bez záruky'],['Stav záruky',wi?.text||'Bez záruky'],['Poznámka',x.notes,true]];
+  const tagText=parseTags(x.tags).map(t=>'#'+t).join(' · '),fields=[['Kategorie',x.category],['Štítky',tagText,true],['Prodejce',x.vendor],['Datum vystavení',date(x.date)],['Částka',x.amount!==''&&x.amount!=null?money(x.amount,x.currency):''],['Číslo dokladu',x.number],['Konec záruky',x.warranty?date(x.warranty):'Bez záruky'],['Stav záruky',wi?.text||'Bez záruky'],['Poznámka',x.notes,true]];
   $('detailGrid').innerHTML=fields.filter(([,v])=>v).map(([label,value,full])=>`<div class="detail-field ${full?'full':''}"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
   $('detailDownload').hidden=!x.attachment;$('detailShare').hidden=!(navigator.share&&x.attachment);$('detailDialog').showModal()
 }
@@ -258,23 +272,23 @@ function renderWarrantyStrip(items){
 }
 async function render(){
   renderUrls.forEach(URL.revokeObjectURL);renderUrls=[];
-  const allItems=await all(),today=new Date();today.setHours(12,0,0,0);renderWarrantyStrip(allItems);
+  const allItems=await all(),today=new Date();today.setHours(12,0,0,0);fillDynamicFilters(allItems);renderWarrantyStrip(allItems);
   const active=allItems.filter(x=>daysTo(x.warranty)>=0),soon=allItems.filter(x=>{const d=daysTo(x.warranty);return d!==null&&d>=0&&d<=30});
   $('statCount').textContent=allItems.length;
   const totalCzk=allItems.filter(x=>(x.currency||'CZK')==='CZK').reduce((sum,x)=>sum+(Number(x.amount)||0),0);
   $('statValue').textContent=money(totalCzk,'CZK');$('statActive').textContent=active.length;$('statSoon').textContent=soon.length;
-  let items=allItems;const q=$('search').value.trim().toLowerCase(),cat=$('filter').value,wf=$('warrantyFilter').value;
-  items=items.filter(x=>{const d=daysTo(x.warranty);const warrantyOk=!wf||(wf==='none'&&d===null)||(wf==='active'&&d!==null&&d>=0)||(wf==='30'&&d!==null&&d>=0&&d<=30)||(wf==='90'&&d!==null&&d>=0&&d<=90)||(wf==='expired'&&d!==null&&d<0);return (!cat||x.category===cat)&&warrantyOk&&(!q||[x.title,x.vendor,x.number,x.notes].join(' ').toLowerCase().includes(q))});
+  let items=allItems;const q=$('search').value.trim().toLowerCase(),cat=$('filter').value,tag=$('tagFilter').value,wf=$('warrantyFilter').value;
+  items=items.filter(x=>{const d=daysTo(x.warranty);const warrantyOk=!wf||(wf==='none'&&d===null)||(wf==='active'&&d!==null&&d>=0)||(wf==='30'&&d!==null&&d>=0&&d<=30)||(wf==='90'&&d!==null&&d>=0&&d<=90)||(wf==='expired'&&d!==null&&d<0);return (!cat||x.category===cat)&&(!tag||parseTags(x.tags).includes(tag))&&warrantyOk&&(!q||[x.title,x.vendor,x.number,x.notes,x.category,...parseTags(x.tags)].join(' ').toLowerCase().includes(q))});
   sortItems(items,$('sort').value);
   $('count').textContent=items.length===1?'1 doklad':items.length<5?items.length+' doklady':items.length+' dokladů';$('list').innerHTML=items.length?'':`<div class="empty full">Zatím tu není žádný doklad odpovídající filtru.</div>`;
   for(const x of items){
     const el=document.createElement('article');el.className='card';const wi=warrantyInfo(x.warranty);let preview='';
     if(x.attachment){if(x.attachment.type?.startsWith('image/')){const u=URL.createObjectURL(x.attachment.blob);renderUrls.push(u);preview=`<img class="attachment-preview" src="${u}" alt="Náhled přílohy ${esc(x.title)}" data-a>`}else preview='<div class="pdf-preview" role="button" tabindex="0" aria-label="Otevřít PDF přílohu" data-a>PDF</div>'}
-    el.innerHTML=`<div class="cardbody ${preview?'':'noimage'}">${preview}<div><div class="cardtop"><div><h3>${esc(x.title)}</h3><div class="meta"><span class="badge">${esc(x.category)}</span>${x.vendor?`<span>${esc(x.vendor)}</span>`:''}${x.date?`<span>${date(x.date)}</span>`:''}</div></div>${x.amount!==''&&x.amount!=null?`<div class="amount">${money(x.amount,x.currency)}</div>`:''}</div>${x.number?`<div class="meta">Číslo: ${esc(x.number)}</div>`:''}${wi?`<div class="warranty-badge ${wi.cls}" title="Záruka do ${date(x.warranty)}">${esc(wi.text)}</div>`:''}${x.notes?`<p class="notes">${esc(x.notes)}</p>`:''}</div></div><div class="cardactions"><button class="btn primary" data-v>Detail</button>${x.attachment?'<button class="btn secondary" data-a>Příloha</button>':''}<button class="btn ghost" data-e>Upravit</button><button class="btn danger" data-d>Smazat</button></div>`;
+    el.innerHTML=`<div class="cardbody ${preview?'':'noimage'}">${preview}<div><div class="cardtop"><div><h3>${esc(x.title)}</h3><div class="meta"><span class="badge">${esc(x.category)}</span>${x.vendor?`<span>${esc(x.vendor)}</span>`:''}${x.date?`<span>${date(x.date)}</span>`:''}</div></div>${x.amount!==''&&x.amount!=null?`<div class="amount">${money(x.amount,x.currency)}</div>`:''}</div>${x.number?`<div class="meta">Číslo: ${esc(x.number)}</div>`:''}${parseTags(x.tags).length?`<div class="tags">${parseTags(x.tags).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}${wi?`<div class="warranty-badge ${wi.cls}" title="Záruka do ${date(x.warranty)}">${esc(wi.text)}</div>`:''}${x.notes?`<p class="notes">${esc(x.notes)}</p>`:''}</div></div><div class="cardactions"><button class="btn primary" data-v>Detail</button>${x.attachment?'<button class="btn secondary" data-a>Příloha</button>':''}<button class="btn ghost" data-e>Upravit</button><button class="btn danger" data-d>Smazat</button></div>`;
     el.querySelector('[data-v]').onclick=()=>showDetail(x.id);el.querySelector('.cardbody').onclick=e=>{if(!e.target.closest('[data-a]'))showDetail(x.id)};el.querySelector('[data-e]').onclick=()=>edit(x.id);el.querySelector('[data-d]').onclick=()=>askDelete(x.id);el.querySelectorAll('[data-a]').forEach(a=>{a.onclick=()=>attachment(x.id);a.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();attachment(x.id)}}});$('list').appendChild(el)
   }
 }
-$('search').oninput=render;$('filter').onchange=render;$('warrantyFilter').onchange=render;$('sort').onchange=render;
+$('search').oninput=render;$('filter').onchange=render;$('tagFilter').onchange=render;$('warrantyFilter').onchange=render;$('sort').onchange=render;
 function blobToDataURL(blob){return new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(r.result);r.readAsDataURL(blob)})}function dataURLtoBlob(s){const [h,b]=s.split(','),m=h.match(/:(.*?);/)[1],a=atob(b),u=new Uint8Array(a.length);for(let i=0;i<a.length;i++)u[i]=a.charCodeAt(i);return new Blob([u],{type:m})}
 const VIEW_KEY='receiptArchiveCompactView';
 function openForm(camera=false){$('formPanel').hidden=false;setTimeout(()=>{$('formPanel').scrollIntoView({behavior:'smooth',block:'start'});if(camera)$('cameraFile').click();else $('title').focus()},80)}

@@ -147,11 +147,18 @@
 
     /* v2.0.7: nativni file input pres celou aktivni plochu */
     .attachment-choice{position:relative;overflow:hidden}.attachment-input{position:absolute!important;inset:0!important;z-index:5!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important;opacity:0!important;cursor:pointer!important;font-size:100px!important;border:0!important}.attachment-choice>*:not(.attachment-input){pointer-events:none}.attachment-choice:focus-within{outline:3px solid rgba(15,118,110,.28);outline-offset:3px}
+
+    /* v2.0.8: pevne dvouradkove popisky voleb prilohy */
+    .attachment-choice{display:grid!important;grid-template-columns:42px minmax(0,1fr);align-items:center;column-gap:12px;min-height:82px}
+    .attachment-choice>span:last-of-type{display:flex!important;min-width:0;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;line-height:1.2}
+    .attachment-choice strong{display:block;width:100%;font-size:16px;line-height:1.2;white-space:normal}
+    .attachment-choice small{display:block;width:100%;color:#d8f2ed;font-size:12px;line-height:1.25;white-space:normal}
+    @media(max-width:720px){.attachment-choice{grid-template-columns:38px minmax(0,1fr);min-height:76px;padding:12px 14px}.attachment-choice strong{font-size:16px}.attachment-choice small{font-size:12px}}
   </style>
 </head>
 <body>
 <main class="app">
-  <header><div class="brand"><div class="logo">▣</div><div><h1>Archiv účtenek <span class="version-chip">2.0.7</span></h1><p class="subtitle">Doklady bezpečně po ruce v tomto zařízení</p></div></div><div class="status" id="net">Online</div></header>
+  <header><div class="brand"><div class="logo">▣</div><div><h1>Archiv účtenek <span class="version-chip">2.0.8</span></h1><p class="subtitle">Doklady bezpečně po ruce v tomto zařízení</p></div></div><div class="status" id="net">Online</div></header>
 
   <section class="panel quick-panel"><div class="quick-actions"><button class="btn primary" id="showFormBtn" type="button">＋ Přidat doklad</button><button class="btn secondary" id="quickCameraBtn" type="button">📷 Vyfotit účtenku</button></div></section>
 

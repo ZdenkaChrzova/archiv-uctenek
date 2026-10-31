@@ -104,6 +104,11 @@
 
     /* v1.7: vlastni kategorie a stitky */
     .tag-input-hint{color:var(--muted);font-size:11px;font-weight:400}.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.tag{display:inline-flex;align-items:center;padding:4px 8px;color:#344054;background:#f2f4f7;border-radius:999px;font-size:11px;font-weight:700}.tag::before{content:'#';color:var(--brand);margin-right:1px}.detail-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}.detail-tags .tag{font-size:12px}.custom-category[hidden]{display:none}
+
+    /* v1.8: Kos a obnova smazanych dokladu */
+    .trash-btn{position:relative}.trash-count{display:inline-grid;min-width:22px;height:22px;margin-left:7px;padding:0 6px;place-items:center;color:#fff;background:var(--danger);border-radius:999px;font-size:11px}.trash-count:empty{display:none}
+    .trash-dialog{width:min(720px,calc(100% - 20px));max-height:90vh;padding:0;overflow:auto}.trash-list{display:grid;gap:10px}.trash-item{padding:13px;background:#fff;border:1px solid var(--line);border-radius:14px}.trash-item-head{display:flex;justify-content:space-between;gap:10px}.trash-item h3{margin:0;font-size:16px}.trash-meta{margin-top:5px;color:var(--muted);font-size:12px}.trash-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.trash-empty{padding:25px;color:var(--muted);text-align:center;background:#f7faf9;border-radius:14px}.trash-toolbar{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}.trash-note{margin:0;color:var(--muted);font-size:12px}.undo-toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));z-index:100;display:flex;align-items:center;justify-content:space-between;gap:14px;width:min(460px,calc(100% - 24px));padding:12px 14px;color:#fff;background:#243a36;border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.25);transform:translateX(-50%)}.undo-toast[hidden]{display:none}.undo-toast button{padding:7px 10px;color:#fff;background:var(--brand);border:0;border-radius:9px;font-weight:800}
+    @media(max-width:720px){.trash-dialog{width:calc(100% - 12px);max-height:94vh;border-radius:18px}.trash-toolbar{display:grid}.trash-actions .btn{flex:1}.undo-toast{bottom:calc(80px + env(safe-area-inset-bottom))}}
   </style>
 </head>
 <body>
@@ -184,16 +189,18 @@
       <select id="sort" aria-label="Řazení dokladů"><option value="newest">Nejnovější</option><option value="oldest">Nejstarší</option><option value="priceDesc">Nejdražší</option><option value="priceAsc">Nejlevnější</option><option value="title">Podle názvu</option><option value="vendor">Podle prodejce</option><option value="warranty">Nejbližší konec záruky</option></select>
       </div></div>
     <p class="count" id="count"></p><div class="cards" id="list"></div>
-    <div class="backup-actions"><button class="btn primary" id="exportBtn" type="button">Export zálohy</button><label class="btn primary import-backup">Import zálohy<input id="importFile" type="file" accept="application/json,.json"></label></div><p class="backup-status" id="backupStatus"></p>
+    <div class="backup-actions"><button class="btn primary" id="exportBtn" type="button">Export zálohy</button><label class="btn primary import-backup">Import zálohy<input id="importFile" type="file" accept="application/json,.json"></label><button class="btn ghost trash-btn" id="openTrash" type="button">Koš <span class="trash-count" id="trashCount"></span></button></div><p class="backup-status" id="backupStatus"></p>
   </section>
   <footer>Data se neodesílají na internet. Vymazání dat prohlížeče může smazat i archiv, proto pravidelně používejte Export zálohy.</footer>
 </main>
-<dialog id="confirm"><h3>Smazat doklad?</h3><p>Tuto akci nelze vrátit zpět.</p><div class="actions"><button class="btn danger" id="confirmDelete">Smazat</button><button class="btn ghost" id="cancelDelete">Zrušit</button></div></dialog>
+<dialog id="confirm"><h3>Přesunout doklad do Koše?</h3><p>Doklad bude možné obnovit po dobu 30 dnů.</p><div class="actions"><button class="btn danger" id="confirmDelete">Smazat</button><button class="btn ghost" id="cancelDelete">Zrušit</button></div></dialog>
 <dialog id="importDialog"><h3>Import zálohy</h3><div class="import-summary" id="importSummary"></div><div class="import-options"><label><input type="radio" name="importMode" value="merge" checked><span><strong>Sloučit s archivem</strong><br><span class="filehint">Nové doklady se přidají, rozpoznané duplicity se přeskočí.</span></span></label><label><input type="radio" name="importMode" value="replace"><span><strong>Nahradit celý archiv</strong><br><span class="filehint">Současné doklady se smažou a nahradí obsahem zálohy.</span></span></label></div><div class="actions"><button class="btn primary" id="runImport" type="button">Provést import</button><button class="btn ghost" id="cancelImport" type="button">Zrušit</button></div></dialog>
 <dialog id="detailDialog" class="detail-dialog"><div class="detail-head"><h2 id="detailTitle">Detail dokladu</h2><button class="detail-close" id="closeDetail" type="button" aria-label="Zavřít detail">✕</button></div><div class="detail-content"><div class="detail-preview" id="detailPreview"></div><div class="detail-grid" id="detailGrid"></div><div class="detail-actions"><button class="btn primary" id="detailEdit" type="button">Upravit</button><button class="btn secondary" id="detailShare" type="button">Sdílet</button><button class="btn secondary" id="detailDownload" type="button">Stáhnout</button><button class="btn danger" id="detailDelete" type="button">Smazat</button></div></div></dialog>
+<dialog id="trashDialog" class="trash-dialog"><div class="detail-head"><h2>Koš</h2><button class="detail-close" id="closeTrash" type="button" aria-label="Zavřít Koš">✕</button></div><div class="detail-content"><div class="trash-toolbar"><p class="trash-note">Doklady v Koši se po 30 dnech automaticky trvale odstraní.</p><button class="btn danger" id="emptyTrash" type="button">Vyprázdnit koš</button></div><div class="trash-list" id="trashList"></div></div></dialog>
+<div class="undo-toast" id="undoToast" hidden aria-live="polite"><span id="undoText">Doklad byl přesunut do Koše.</span><button id="undoDelete" type="button">Vrátit zpět</button></div>
 <button class="back-top" id="backTop" type="button" aria-label="Zpět nahoru" hidden>↑</button>
 <script>
-const DB='receipt-archive-db', STORE='receipts'; let db, editingId=null, deleteId=null, currentAttachment=null, detailId=null, detailUrl=null;
+const DB='receipt-archive-db', STORE='receipts'; let db, editingId=null, deleteId=null, currentAttachment=null, detailId=null, detailUrl=null, lastDeletedId=null, undoTimer=null;
 const $=id=>document.getElementById(id);
 function req(r){return new Promise((ok,no)=>{r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
 async function openDB(){db=await new Promise((ok,no)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:'id',autoIncrement:true})};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});render()}
@@ -202,6 +209,15 @@ async function get(id){return req(db.transaction(STORE).objectStore(STORE).get(i
 async function put(item){return req(db.transaction(STORE,'readwrite').objectStore(STORE).put(item))}
 async function remove(id){return req(db.transaction(STORE,'readwrite').objectStore(STORE).delete(id))}
 async function clearAll(){return req(db.transaction(STORE,'readwrite').objectStore(STORE).clear())}
+async function purgeExpiredTrash(){const items=await all(),cutoff=Date.now()-30*86400000,expired=items.filter(x=>x.deletedAt&&new Date(x.deletedAt).getTime()<cutoff);for(const x of expired)await remove(x.id);return expired.length}
+async function moveToTrash(id){const x=await get(id);if(!x)return;x.deletedAt=new Date().toISOString();await put(x);lastDeletedId=id;showUndo(x.title);await render()}
+async function restoreFromTrash(id){const x=await get(id);if(!x)return;delete x.deletedAt;await put(x);if(lastDeletedId===id)hideUndo();await render();await renderTrash()}
+function hideUndo(){clearTimeout(undoTimer);$('undoToast').hidden=true;lastDeletedId=null}
+function showUndo(title){clearTimeout(undoTimer);$('undoText').textContent=`${title||'Doklad'} byl přesunut do Koše.`;$('undoToast').hidden=false;undoTimer=setTimeout(hideUndo,7000)}
+function daysInTrash(x){return Math.max(0,Math.floor((Date.now()-new Date(x.deletedAt).getTime())/86400000))}
+async function renderTrash(){const items=(await all()).filter(x=>x.deletedAt).sort((a,b)=>b.deletedAt.localeCompare(a.deletedAt));$('trashCount').textContent=items.length?String(items.length):'';$('emptyTrash').hidden=!items.length;$('trashList').innerHTML=items.length?items.map(x=>{const left=Math.max(0,30-daysInTrash(x));return `<article class="trash-item"><div class="trash-item-head"><div><h3>${esc(x.title)}</h3><div class="trash-meta">${x.category?esc(x.category)+' · ':''}${x.deletedAt?'Smazáno '+new Date(x.deletedAt).toLocaleDateString('cs-CZ'):''}</div></div>${x.amount!==''&&x.amount!=null?`<strong>${money(x.amount,x.currency)}</strong>`:''}</div><div class="trash-meta">Automatické odstranění za ${left} dní</div><div class="trash-actions"><button class="btn primary" data-restore="${x.id}" type="button">Obnovit</button><button class="btn danger" data-purge="${x.id}" type="button">Trvale odstranit</button></div></article>`}).join(''):'<div class="trash-empty">Koš je prázdný.</div>';
+ $('trashList').querySelectorAll('[data-restore]').forEach(b=>b.onclick=()=>restoreFromTrash(Number(b.dataset.restore)));$('trashList').querySelectorAll('[data-purge]').forEach(b=>b.onclick=async()=>{if(confirm('Opravdu tento doklad trvale odstranit? Tuto akci nelze vrátit.')){await remove(Number(b.dataset.purge));await render();await renderTrash()}})}
+
 function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function money(v,c){if(v===''||v==null)return '';return new Intl.NumberFormat('cs-CZ',{style:'currency',currency:c||'CZK'}).format(Number(v))}
 function date(v){return v?new Intl.DateTimeFormat('cs-CZ').format(new Date(v+'T12:00:00')):''}
@@ -258,7 +274,11 @@ $('detailDownload').onclick=()=>attachment(detailId);
 $('detailShare').onclick=async()=>{const x=await get(detailId);if(!x?.attachment)return;try{const file=new File([x.attachment.blob],x.attachment.name||'doklad',{type:x.attachment.type||x.attachment.blob.type});if(navigator.canShare?.({files:[file]}))await navigator.share({title:x.title,text:'Doklad z aplikace Archiv účtenek',files:[file]});else await navigator.share({title:x.title,text:`${x.title}${x.vendor?' · '+x.vendor:''}`})}catch(err){if(err.name!=='AbortError')alert('Sdílení se nepodařilo.')}};
 async function attachment(id){const x=await get(id);if(!x.attachment)return;const u=URL.createObjectURL(x.attachment.blob),a=document.createElement('a');a.href=u;a.download=x.attachment.name||'doklad';a.target='_blank';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}
 function askDelete(id){deleteId=id;$('confirm').showModal()}
-$('cancelDelete').onclick=()=>$('confirm').close();$('confirmDelete').onclick=async()=>{await remove(deleteId);$('confirm').close();if(editingId===deleteId)resetForm();render()};
+$('openTrash').onclick=async()=>{await renderTrash();$('trashDialog').showModal()};$('closeTrash').onclick=()=>$('trashDialog').close();$('trashDialog').addEventListener('click',e=>{if(e.target===$('trashDialog'))$('trashDialog').close()});
+$('undoDelete').onclick=()=>lastDeletedId&&restoreFromTrash(lastDeletedId);
+$('emptyTrash').onclick=async()=>{const items=(await all()).filter(x=>x.deletedAt);if(!items.length)return;if(confirm(`Opravdu trvale odstranit ${items.length} dokladů z Koše? Tuto akci nelze vrátit.`)){for(const x of items)await remove(x.id);hideUndo();await render();await renderTrash()}};
+
+$('cancelDelete').onclick=()=>{$('confirm').close();deleteId=null};$('confirmDelete').onclick=async()=>{const id=deleteId;$('confirm').close();deleteId=null;if(editingId===id)resetForm();await moveToTrash(id)};
 let renderUrls=[];
 function localDay(v){return v?new Date(v+'T12:00:00'):null}
 function daysTo(v){if(!v)return null;const today=new Date();today.setHours(12,0,0,0);return Math.round((localDay(v)-today)/86400000)}
@@ -272,7 +292,7 @@ function renderWarrantyStrip(items){
 }
 async function render(){
   renderUrls.forEach(URL.revokeObjectURL);renderUrls=[];
-  const allItems=await all(),today=new Date();today.setHours(12,0,0,0);fillDynamicFilters(allItems);renderWarrantyStrip(allItems);
+  const storedItems=await all(),allItems=storedItems.filter(x=>!x.deletedAt),trashedItems=storedItems.filter(x=>x.deletedAt),today=new Date();today.setHours(12,0,0,0);$('trashCount').textContent=trashedItems.length?String(trashedItems.length):'';fillDynamicFilters(allItems);renderWarrantyStrip(allItems);
   const active=allItems.filter(x=>daysTo(x.warranty)>=0),soon=allItems.filter(x=>{const d=daysTo(x.warranty);return d!==null&&d>=0&&d<=30});
   $('statCount').textContent=allItems.length;
   const totalCzk=allItems.filter(x=>(x.currency||'CZK')==='CZK').reduce((sum,x)=>sum+(Number(x.amount)||0),0);
@@ -306,6 +326,6 @@ $('runImport').onclick=async()=>{if(!pendingImport)return;const mode=document.qu
 updateBackupStatus();
 function net(){ $('net').textContent=navigator.onLine?'Online':'Offline'}addEventListener('online',net);addEventListener('offline',net);net();
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js'));
-openDB().catch(()=>alert('Úložiště aplikace se nepodařilo otevřít.'));resetForm();
+openDB().then(async()=>{const removed=await purgeExpiredTrash();if(removed)await render()}).catch(()=>alert('Úložiště aplikace se nepodařilo otevřít.'));resetForm();
 </script>
 </body></html>

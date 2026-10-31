@@ -91,6 +91,16 @@
     /* v1.6: detail dokladu */
     .cardbody{cursor:pointer}.detail-dialog{width:min(720px,calc(100% - 24px));max-height:90vh;padding:0;overflow:auto}.detail-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;background:#fff;border-bottom:1px solid var(--line)}.detail-head h2{margin:0;font-size:21px}.detail-close{min-width:44px;min-height:44px;border:0;border-radius:12px;background:#edf4f2;color:var(--brand2);font-size:20px}.detail-content{padding:18px}.detail-preview{display:grid;place-items:center;min-height:180px;margin-bottom:17px;overflow:hidden;background:#f4f8f7;border:1px solid var(--line);border-radius:16px}.detail-preview img{display:block;width:100%;max-height:58vh;object-fit:contain}.detail-pdf{padding:42px 20px;color:var(--danger);font-size:34px;font-weight:900}.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.detail-field{padding:11px;background:#f7faf9;border-radius:12px}.detail-field.full{grid-column:1/-1}.detail-field span{display:block;color:var(--muted);font-size:11px}.detail-field strong{display:block;margin-top:2px;overflow-wrap:anywhere}.detail-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:17px}.detail-actions .btn{min-width:0;padding:10px 7px}.detail-empty{color:var(--muted)}
     @media(max-width:720px){.detail-dialog{width:calc(100% - 12px);max-height:94vh;border-radius:18px}.detail-head{padding:12px 14px}.detail-content{padding:14px}.detail-grid{grid-template-columns:1fr 1fr}.detail-actions{grid-template-columns:1fr 1fr}.detail-preview{min-height:140px}.detail-preview img{max-height:48vh}}
+
+    /* v1.6.1: viditelny detail a aktivni nahled prilohy */
+    .cards.compact .cardactions{display:grid;grid-template-columns:1fr}
+    .cards.compact .cardactions .btn:not([data-v]){display:none}
+    .cards.compact .cardactions [data-v]{display:block;min-width:72px}
+    .detail-preview.has-attachment{cursor:pointer}
+    .detail-preview.has-attachment:focus-visible{outline:3px solid rgba(15,118,110,.28);outline-offset:2px}
+    .detail-pdf{display:grid;place-items:center;width:100%;min-height:180px;border:0;background:transparent;cursor:pointer}
+    .detail-pdf small{display:block;margin-top:8px;color:var(--brand2);font-size:13px;font-weight:750}
+    @media(max-width:720px){.cards.compact .card{grid-template-columns:minmax(0,1fr) auto}.cards.compact .cardactions{display:grid}.cards.compact .cardactions [data-v]{min-height:44px;padding:8px 10px}}
   </style>
 </head>
 <body>
@@ -221,8 +231,8 @@ function closeDetail(){if(detailUrl){URL.revokeObjectURL(detailUrl);detailUrl=nu
 async function showDetail(id){
   const x=await get(id);if(!x)return;detailId=id;if(detailUrl){URL.revokeObjectURL(detailUrl);detailUrl=null}
   $('detailTitle').textContent=x.title||'Detail dokladu';const wi=warrantyInfo(x.warranty);let preview='<div class="detail-empty">Doklad nemá přílohu.</div>';
-  if(x.attachment?.blob){detailUrl=URL.createObjectURL(x.attachment.blob);preview=x.attachment.type?.startsWith('image/')?`<img src="${detailUrl}" alt="Příloha ${esc(x.title)}">`:`<div class="detail-pdf">PDF</div>`}
-  $('detailPreview').innerHTML=preview;
+  if(x.attachment?.blob){detailUrl=URL.createObjectURL(x.attachment.blob);preview=x.attachment.type?.startsWith('image/')?`<img src="${detailUrl}" alt="Příloha ${esc(x.title)}">`:`<button class="detail-pdf" type="button" aria-label="Otevřít PDF přílohu"><span>PDF<small>Klepnutím otevřít</small></span></button>`}
+  $('detailPreview').innerHTML=preview;$('detailPreview').classList.toggle('has-attachment',!!x.attachment?.blob);$('detailPreview').tabIndex=x.attachment?.blob?0:-1;if(x.attachment?.blob){$('detailPreview').onclick=()=>attachment(id);$('detailPreview').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();attachment(id)}}}else{$('detailPreview').onclick=null;$('detailPreview').onkeydown=null}
   const fields=[['Kategorie',x.category],['Prodejce',x.vendor],['Datum vystavení',date(x.date)],['Částka',x.amount!==''&&x.amount!=null?money(x.amount,x.currency):''],['Číslo dokladu',x.number],['Konec záruky',x.warranty?date(x.warranty):'Bez záruky'],['Stav záruky',wi?.text||'Bez záruky'],['Poznámka',x.notes,true]];
   $('detailGrid').innerHTML=fields.filter(([,v])=>v).map(([label,value,full])=>`<div class="detail-field ${full?'full':''}"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
   $('detailDownload').hidden=!x.attachment;$('detailShare').hidden=!(navigator.share&&x.attachment);$('detailDialog').showModal()

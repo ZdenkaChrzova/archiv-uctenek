@@ -49,6 +49,11 @@
     @media (max-width:380px){
       .subtitle{max-width:245px;overflow:hidden;text-overflow:ellipsis}.stat{padding:10px}.stat strong{font-size:19px}.cardbody{grid-template-columns:62px minmax(0,1fr)}.attachment-preview,.pdf-preview{width:62px;height:62px}.cardactions{grid-template-columns:1fr}.cardactions .btn{font-size:14px}.panel{width:calc(100% - 12px);padding:13px}
     }
+
+    .backup-status{margin:9px 0 0;color:var(--muted);font-size:12px}.backup-status.warn{color:var(--warning);font-weight:700}
+    .compression-status{display:block;margin-top:8px;color:var(--brand2);font-size:12px;font-weight:650}
+    .import-summary{padding:12px;background:#f5fbf9;border:1px solid var(--line);border-radius:12px;line-height:1.6}
+    .import-options{display:grid;gap:9px;margin-top:14px}.import-options label{display:flex;align-items:flex-start;gap:9px;padding:10px;border:1px solid var(--line);border-radius:12px}.import-options input{width:auto;margin-top:3px}
   </style>
 </head>
 <body>
@@ -102,7 +107,7 @@
             </label>
           </div>
           <span class="filehint">První volba otevře fotoaparát. Druhá umožní vybrat existující fotografii nebo PDF ze zařízení.</span>
-          <span class="preview" id="preview"><img class="thumb" id="thumb" alt="Náhled"><span id="fileName"></span></span>
+          <span class="preview" id="preview"><img class="thumb" id="thumb" alt="Náhled"><span id="fileName"></span></span><span class="compression-status" id="compressionStatus" aria-live="polite"></span>
         </div>
       </div>
       <div class="actions"><button class="btn primary" type="submit" id="saveBtn">Uložit doklad</button><button class="btn secondary" type="button" id="cancelEdit" hidden>Zrušit úpravu</button><button class="btn ghost" type="reset">Vyčistit</button></div>
@@ -126,11 +131,12 @@
       <button class="btn secondary" id="exportBtn" type="button">Export zálohy</button>
     </div>
     <p class="count" id="count"></p><div class="cards" id="list"></div>
-    <div class="actions"><label class="btn ghost" style="display:inline-block">Import zálohy<input id="importFile" type="file" accept="application/json" hidden></label></div>
+    <div class="actions"><label class="btn ghost" style="display:inline-block">Import zálohy<input id="importFile" type="file" accept="application/json,.json" hidden></label></div><p class="backup-status" id="backupStatus"></p>
   </section>
   <footer>Data se neodesílají na internet. Vymazání dat prohlížeče může smazat i archiv, proto pravidelně používejte Export zálohy.</footer>
 </main>
 <dialog id="confirm"><h3>Smazat doklad?</h3><p>Tuto akci nelze vrátit zpět.</p><div class="actions"><button class="btn danger" id="confirmDelete">Smazat</button><button class="btn ghost" id="cancelDelete">Zrušit</button></div></dialog>
+<dialog id="importDialog"><h3>Import zálohy</h3><div class="import-summary" id="importSummary"></div><div class="import-options"><label><input type="radio" name="importMode" value="merge" checked><span><strong>Sloučit s archivem</strong><br><span class="filehint">Nové doklady se přidají, rozpoznané duplicity se přeskočí.</span></span></label><label><input type="radio" name="importMode" value="replace"><span><strong>Nahradit celý archiv</strong><br><span class="filehint">Současné doklady se smažou a nahradí obsahem zálohy.</span></span></label></div><div class="actions"><button class="btn primary" id="runImport" type="button">Provést import</button><button class="btn ghost" id="cancelImport" type="button">Zrušit</button></div></dialog>
 <script>
 const DB='receipt-archive-db', STORE='receipts'; let db, editingId=null, deleteId=null, currentAttachment=null;
 const $=id=>document.getElementById(id);
@@ -140,14 +146,30 @@ async function all(){return req(db.transaction(STORE).objectStore(STORE).getAll(
 async function get(id){return req(db.transaction(STORE).objectStore(STORE).get(id))}
 async function put(item){return req(db.transaction(STORE,'readwrite').objectStore(STORE).put(item))}
 async function remove(id){return req(db.transaction(STORE,'readwrite').objectStore(STORE).delete(id))}
+async function clearAll(){return req(db.transaction(STORE,'readwrite').objectStore(STORE).clear())}
 function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function money(v,c){if(v===''||v==null)return '';return new Intl.NumberFormat('cs-CZ',{style:'currency',currency:c||'CZK'}).format(Number(v))}
 function date(v){return v?new Intl.DateTimeFormat('cs-CZ').format(new Date(v+'T12:00:00')):''}
 function addMonths(dateString,months){if(!dateString||!months)return '';const d=new Date(dateString+'T12:00:00'),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+Number(months));const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return d.toISOString().slice(0,10)}
 function updateWarranty(){const byMonths=$('warrantyMode').value==='months';$('warrantyMonthsWrap').hidden=!byMonths;$('warrantyDateWrap').hidden=byMonths;if(byMonths)$('warranty').value=addMonths($('date').value,$('warrantyMonths').value);$('warrantyResult').textContent=$('warranty').value?'Konec záruky: '+date($('warranty').value):''}
 $('warrantyMode').onchange=updateWarranty;$('warrantyMonths').onchange=updateWarranty;$('date').onchange=updateWarranty;$('warranty').onchange=updateWarranty;
-function resetForm(){editingId=null;currentAttachment=null;$('formTitle').textContent='Přidat doklad';$('saveBtn').textContent='Uložit doklad';$('cancelEdit').hidden=true;$('receiptForm').reset();$('preview').classList.remove('show');$('date').value=new Date().toISOString().slice(0,10);$('warrantyMode').value='months';$('warrantyMonths').value='24';updateWarranty()}
-function selectAttachment(e){const f=e.target.files[0];if(!f)return;currentAttachment={blob:f,name:f.name,type:f.type};$('fileName').textContent=f.name;$('preview').classList.add('show');if(f.type.startsWith('image/')){$('thumb').src=URL.createObjectURL(f);$('thumb').style.display='block'}else $('thumb').style.display='none'}
+function resetForm(){editingId=null;currentAttachment=null;$('formTitle').textContent='Přidat doklad';$('saveBtn').textContent='Uložit doklad';$('cancelEdit').hidden=true;$('receiptForm').reset();$('preview').classList.remove('show');$('compressionStatus').textContent='';$('date').value=new Date().toISOString().slice(0,10);$('warrantyMode').value='months';$('warrantyMonths').value='24';updateWarranty()}
+function fileSize(bytes){if(bytes<1024)return bytes+' B';if(bytes<1048576)return (bytes/1024).toFixed(1)+' kB';return (bytes/1048576).toFixed(1)+' MB'}
+async function compressImage(file,maxSide=1600,quality=.8){
+  const bitmap=await createImageBitmap(file),scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height)),w=Math.max(1,Math.round(bitmap.width*scale)),h=Math.max(1,Math.round(bitmap.height*scale));
+  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(bitmap,0,0,w,h);bitmap.close?.();
+  const blob=await new Promise((ok,no)=>canvas.toBlob(b=>b?ok(b):no(Error('Komprese selhala.')),'image/jpeg',quality));return {blob,width:w,height:h}
+}
+async function selectAttachment(e){
+  const f=e.target.files[0];if(!f)return;$('compressionStatus').textContent='Zpracovávám přílohu…';
+  try{
+    if(f.size>25*1024*1024)throw Error('Soubor je větší než 25 MB. Vyber menší soubor.');
+    if(f.type.startsWith('image/')){const c=await compressImage(f);const name=f.name.replace(/\.[^.]+$/, '')+'-opt.jpg';currentAttachment={blob:c.blob,name,type:'image/jpeg'};$('compressionStatus').textContent=`Optimalizováno: ${fileSize(f.size)} → ${fileSize(c.blob.size)} · ${c.width} × ${c.height} px`;}
+    else if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){currentAttachment={blob:f,name:f.name,type:'application/pdf'};$('compressionStatus').textContent=`PDF beze změny · ${fileSize(f.size)}`;}
+    else throw Error('Povolené jsou obrázky a PDF.');
+    $('fileName').textContent=currentAttachment.name;$('preview').classList.add('show');if(currentAttachment.type.startsWith('image/')){$('thumb').src=URL.createObjectURL(currentAttachment.blob);$('thumb').style.display='block'}else $('thumb').style.display='none';
+  }catch(err){currentAttachment=null;$('preview').classList.remove('show');$('compressionStatus').textContent=err.message;e.target.value=''}
+}
 $('file').addEventListener('change',selectAttachment);
 $('cameraFile').addEventListener('change',selectAttachment);
 $('receiptForm').addEventListener('submit',async e=>{e.preventDefault();const old=editingId?await get(editingId):{};const item={...old,title:$('title').value.trim(),vendor:$('vendor').value.trim(),date:$('date').value,amount:$('amount').value,currency:$('currency').value,category:$('category').value,warranty:$('warranty').value,number:$('number').value.trim(),notes:$('notes').value.trim(),updatedAt:new Date().toISOString()};if(editingId)item.id=editingId;else item.createdAt=item.updatedAt;if(currentAttachment)item.attachment=currentAttachment;await put(item);resetForm();await render()});
@@ -181,8 +203,14 @@ async function render(){
 }
 $('search').oninput=render;$('filter').onchange=render;$('warrantyFilter').onchange=render;$('sort').onchange=render;
 function blobToDataURL(blob){return new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(r.result);r.readAsDataURL(blob)})}function dataURLtoBlob(s){const [h,b]=s.split(','),m=h.match(/:(.*?);/)[1],a=atob(b),u=new Uint8Array(a.length);for(let i=0;i<a.length;i++)u[i]=a.charCodeAt(i);return new Blob([u],{type:m})}
-$('exportBtn').onclick=async()=>{const items=await all();for(const x of items)if(x.attachment){x.attachment={...x.attachment,data:await blobToDataURL(x.attachment.blob)};delete x.attachment.blob}const b=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),items},null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='archiv-uctenek-zaloha.json';a.click();URL.revokeObjectURL(u)};
-$('importFile').onchange=async e=>{try{const data=JSON.parse(await e.target.files[0].text());if(!Array.isArray(data.items))throw Error();for(const x of data.items){delete x.id;if(x.attachment?.data){x.attachment.blob=dataURLtoBlob(x.attachment.data);delete x.attachment.data}await put(x)}await render();alert('Záloha byla importována.')}catch{alert('Soubor zálohy není platný.')}e.target.value=''};
+const BACKUP_KEY='receiptArchiveLastBackup';let pendingImport=null;
+function updateBackupStatus(){const raw=localStorage.getItem(BACKUP_KEY),el=$('backupStatus');if(!raw){el.textContent='Záloha zatím nebyla vytvořena.';el.className='backup-status warn';return}const d=new Date(raw),days=Math.floor((Date.now()-d.getTime())/86400000);el.textContent=`Poslední záloha: ${d.toLocaleDateString('cs-CZ')} (${days===0?'dnes':days===1?'před 1 dnem':`před ${days} dny`})`;el.className='backup-status'+(days>=30?' warn':'')}
+function fingerprint(x){return [x.number||'',x.date||'',Number(x.amount||0).toFixed(2),(x.vendor||'').trim().toLowerCase(),(x.title||'').trim().toLowerCase()].join('|')}
+$('exportBtn').onclick=async()=>{const items=await all(),copy=[];for(const x of items){const y={...x};if(y.attachment){y.attachment={...y.attachment,data:await blobToDataURL(y.attachment.blob)};delete y.attachment.blob}copy.push(y)}const b=new Blob([JSON.stringify({version:2,app:'Archiv účtenek',exportedAt:new Date().toISOString(),items:copy},null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=`archiv-uctenek-zaloha-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);localStorage.setItem(BACKUP_KEY,new Date().toISOString());updateBackupStatus()};
+$('importFile').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;const data=JSON.parse(await file.text());if(!Array.isArray(data.items))throw Error();const existing=await all(),seen=new Set(existing.map(fingerprint)),duplicates=data.items.filter(x=>seen.has(fingerprint(x))).length;pendingImport=data;$('importSummary').innerHTML=`V záloze je <strong>${data.items.length}</strong> dokladů.<br>V současném archivu je <strong>${existing.length}</strong> dokladů.<br>Pravděpodobné duplicity: <strong>${duplicates}</strong>.<br><span class="filehint">Záloha: ${data.exportedAt?new Date(data.exportedAt).toLocaleString('cs-CZ'):'datum neuvedeno'}</span>`;$('importDialog').showModal()}catch{$('importFile').value='';alert('Soubor zálohy není platný.')}};
+$('cancelImport').onclick=()=>{pendingImport=null;$('importFile').value='';$('importDialog').close()};
+$('runImport').onclick=async()=>{if(!pendingImport)return;const mode=document.querySelector('input[name="importMode"]:checked').value,button=$('runImport');button.disabled=true;button.textContent='Importuji…';try{if(mode==='replace')await clearAll();const existing=await all(),seen=new Set(existing.map(fingerprint));let added=0,skipped=0;for(const source of pendingImport.items){const x={...source};delete x.id;const key=fingerprint(x);if(mode==='merge'&&seen.has(key)){skipped++;continue}if(x.attachment?.data){x.attachment={...x.attachment,blob:dataURLtoBlob(x.attachment.data)};delete x.attachment.data}await put(x);seen.add(key);added++}await render();$('importDialog').close();alert(`Import dokončen. Přidáno: ${added}, přeskočeno: ${skipped}.`)}catch(err){console.error(err);alert('Import se nepodařil dokončit. Původní export si ponech jako zálohu.')}finally{pendingImport=null;$('importFile').value='';button.disabled=false;button.textContent='Provést import'}};
+updateBackupStatus();
 function net(){ $('net').textContent=navigator.onLine?'Online':'Offline'}addEventListener('online',net);addEventListener('offline',net);net();
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js'));
 openDB().catch(()=>alert('Úložiště aplikace se nepodařilo otevřít.'));resetForm();

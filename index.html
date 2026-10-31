@@ -109,6 +109,15 @@
     .trash-btn{position:relative}.trash-count{display:inline-grid;min-width:22px;height:22px;margin-left:7px;padding:0 6px;place-items:center;color:#fff;background:var(--danger);border-radius:999px;font-size:11px}.trash-count:empty{display:none}
     .trash-dialog{width:min(720px,calc(100% - 20px));max-height:90vh;padding:0;overflow:auto}.trash-list{display:grid;gap:10px}.trash-item{padding:13px;background:#fff;border:1px solid var(--line);border-radius:14px}.trash-item-head{display:flex;justify-content:space-between;gap:10px}.trash-item h3{margin:0;font-size:16px}.trash-meta{margin-top:5px;color:var(--muted);font-size:12px}.trash-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.trash-empty{padding:25px;color:var(--muted);text-align:center;background:#f7faf9;border-radius:14px}.trash-toolbar{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}.trash-note{margin:0;color:var(--muted);font-size:12px}.undo-toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));z-index:100;display:flex;align-items:center;justify-content:space-between;gap:14px;width:min(460px,calc(100% - 24px));padding:12px 14px;color:#fff;background:#243a36;border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.25);transform:translateX(-50%)}.undo-toast[hidden]{display:none}.undo-toast button{padding:7px 10px;color:#fff;background:var(--brand);border:0;border-radius:9px;font-weight:800}
     @media(max-width:720px){.trash-dialog{width:calc(100% - 12px);max-height:94vh;border-radius:18px}.trash-toolbar{display:grid}.trash-actions .btn{flex:1}.undo-toast{bottom:calc(80px + env(safe-area-inset-bottom))}}
+
+    /* v1.8.1: aktivni obnova a vyrazny panel Kose */
+    .backup-actions .trash-btn{color:#fff;background:var(--danger);border:2px solid #8f1c13;box-shadow:0 7px 18px rgba(180,35,24,.18);font-size:16px;font-weight:850}
+    .backup-actions .trash-btn:hover,.backup-actions .trash-btn:focus-visible{background:#912018;outline:3px solid rgba(180,35,24,.2);outline-offset:2px}
+    .backup-actions .trash-count{color:var(--danger);background:#fff}
+    .trash-item [data-restore]{color:#fff!important;background:var(--brand)!important;opacity:1!important;pointer-events:auto!important;box-shadow:0 4px 12px rgba(15,118,110,.18)}
+    .trash-item [data-restore]:active{background:var(--brand2)!important;transform:translateY(1px)}
+    .trash-item [data-restore]:disabled{opacity:.65!important;cursor:wait}
+    @media(max-width:720px){.backup-actions .trash-btn{min-height:54px}.trash-item [data-restore]{min-height:48px;font-size:15px}}
   </style>
 </head>
 <body>
@@ -210,13 +219,13 @@ async function put(item){return req(db.transaction(STORE,'readwrite').objectStor
 async function remove(id){return req(db.transaction(STORE,'readwrite').objectStore(STORE).delete(id))}
 async function clearAll(){return req(db.transaction(STORE,'readwrite').objectStore(STORE).clear())}
 async function purgeExpiredTrash(){const items=await all(),cutoff=Date.now()-30*86400000,expired=items.filter(x=>x.deletedAt&&new Date(x.deletedAt).getTime()<cutoff);for(const x of expired)await remove(x.id);return expired.length}
-async function moveToTrash(id){const x=await get(id);if(!x)return;x.deletedAt=new Date().toISOString();await put(x);lastDeletedId=id;showUndo(x.title);await render()}
-async function restoreFromTrash(id){const x=await get(id);if(!x)return;delete x.deletedAt;await put(x);if(lastDeletedId===id)hideUndo();await render();await renderTrash()}
+async function moveToTrash(id){const x=await get(id);if(!x)return;const trashed={...x,deletedAt:new Date().toISOString()};if(x.attachment)trashed.attachment=x.attachment;await put(trashed);lastDeletedId=id;showUndo(x.title);await render()}
+async function restoreFromTrash(id){const x=await get(id);if(!x)throw Error('Doklad v Koši nebyl nalezen.');const preservedAttachment=x.attachment||null,restored={...x};delete restored.deletedAt;if(preservedAttachment)restored.attachment=preservedAttachment;await put(restored);const check=await get(id);if(preservedAttachment&&!check?.attachment?.blob){check.attachment=preservedAttachment;await put(check)}if(lastDeletedId===id)hideUndo();await render();await renderTrash()}
 function hideUndo(){clearTimeout(undoTimer);$('undoToast').hidden=true;lastDeletedId=null}
 function showUndo(title){clearTimeout(undoTimer);$('undoText').textContent=`${title||'Doklad'} byl přesunut do Koše.`;$('undoToast').hidden=false;undoTimer=setTimeout(hideUndo,7000)}
 function daysInTrash(x){return Math.max(0,Math.floor((Date.now()-new Date(x.deletedAt).getTime())/86400000))}
 async function renderTrash(){const items=(await all()).filter(x=>x.deletedAt).sort((a,b)=>b.deletedAt.localeCompare(a.deletedAt));$('trashCount').textContent=items.length?String(items.length):'';$('emptyTrash').hidden=!items.length;$('trashList').innerHTML=items.length?items.map(x=>{const left=Math.max(0,30-daysInTrash(x));return `<article class="trash-item"><div class="trash-item-head"><div><h3>${esc(x.title)}</h3><div class="trash-meta">${x.category?esc(x.category)+' · ':''}${x.deletedAt?'Smazáno '+new Date(x.deletedAt).toLocaleDateString('cs-CZ'):''}</div></div>${x.amount!==''&&x.amount!=null?`<strong>${money(x.amount,x.currency)}</strong>`:''}</div><div class="trash-meta">Automatické odstranění za ${left} dní</div><div class="trash-actions"><button class="btn primary" data-restore="${x.id}" type="button">Obnovit</button><button class="btn danger" data-purge="${x.id}" type="button">Trvale odstranit</button></div></article>`}).join(''):'<div class="trash-empty">Koš je prázdný.</div>';
- $('trashList').querySelectorAll('[data-restore]').forEach(b=>b.onclick=()=>restoreFromTrash(Number(b.dataset.restore)));$('trashList').querySelectorAll('[data-purge]').forEach(b=>b.onclick=async()=>{if(confirm('Opravdu tento doklad trvale odstranit? Tuto akci nelze vrátit.')){await remove(Number(b.dataset.purge));await render();await renderTrash()}})}
+}
 
 function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function money(v,c){if(v===''||v==null)return '';return new Intl.NumberFormat('cs-CZ',{style:'currency',currency:c||'CZK'}).format(Number(v))}
@@ -276,6 +285,8 @@ async function attachment(id){const x=await get(id);if(!x.attachment)return;cons
 function askDelete(id){deleteId=id;$('confirm').showModal()}
 $('openTrash').onclick=async()=>{await renderTrash();$('trashDialog').showModal()};$('closeTrash').onclick=()=>$('trashDialog').close();$('trashDialog').addEventListener('click',e=>{if(e.target===$('trashDialog'))$('trashDialog').close()});
 $('undoDelete').onclick=()=>lastDeletedId&&restoreFromTrash(lastDeletedId);
+$('trashList').addEventListener('click',async e=>{const restore=e.target.closest('[data-restore]'),purge=e.target.closest('[data-purge]');if(restore){e.preventDefault();e.stopPropagation();const id=Number(restore.dataset.restore);restore.disabled=true;restore.textContent='Obnovuji…';try{await restoreFromTrash(id);const restored=await get(id);$('trashDialog').close();$('undoText').textContent=restored?.attachment?.blob?'Doklad i příloha byly obnoveny z Koše.':'Doklad byl obnoven z Koše.';$('undoToast').hidden=false;clearTimeout(undoTimer);undoTimer=setTimeout(hideUndo,3500)}catch(err){console.error(err);restore.disabled=false;restore.textContent='Obnovit';alert('Doklad se nepodařilo obnovit.')}return}if(purge){e.preventDefault();e.stopPropagation();const id=Number(purge.dataset.purge);if(confirm('Opravdu tento doklad trvale odstranit? Tuto akci nelze vrátit.')){await remove(id);await render();await renderTrash()}}});
+
 $('emptyTrash').onclick=async()=>{const items=(await all()).filter(x=>x.deletedAt);if(!items.length)return;if(confirm(`Opravdu trvale odstranit ${items.length} dokladů z Koše? Tuto akci nelze vrátit.`)){for(const x of items)await remove(x.id);hideUndo();await render();await renderTrash()}};
 
 $('cancelDelete').onclick=()=>{$('confirm').close();deleteId=null};$('confirmDelete').onclick=async()=>{const id=deleteId;$('confirm').close();deleteId=null;if(editingId===id)resetForm();await moveToTrash(id)};

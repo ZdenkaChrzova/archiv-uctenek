@@ -62,6 +62,18 @@
     .cards.compact{grid-template-columns:1fr}.cards.compact .card{grid-template-columns:minmax(0,1fr) auto;align-items:center}.cards.compact .cardbody{grid-template-columns:58px minmax(0,1fr)}.cards.compact .attachment-preview,.cards.compact .pdf-preview{width:58px;height:58px}.cards.compact .notes{display:none}.cards.compact .cardactions{padding:0}.cards.compact .warranty-badge{margin-top:5px}
     .back-top{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:30;width:48px;height:48px;border:0;border-radius:50%;color:#fff;background:var(--brand);box-shadow:0 7px 20px rgba(15,118,110,.3);font-size:20px}.back-top[hidden]{display:none}
     @media(max-width:720px){.quick-panel{margin-top:10px}.quick-actions{grid-template-columns:1fr 1fr}.warranty-strip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:3px}.warranty-item{min-width:210px;scroll-snap-align:start}.list-top{align-items:flex-start}.list-controls{flex-shrink:0}.cards.compact .card{grid-template-columns:1fr}.cards.compact .cardactions{display:none}}
+
+    /* v1.5.1: unified quick buttons and smaller native file text */
+    .quick-actions .btn{background:var(--brand);color:#fff}
+    .quick-actions .btn:hover{background:var(--brand2)}
+    .filebox input[type="file"]{font-size:12px;line-height:1.2;max-width:100%;color:var(--muted)}
+    .filebox input[type="file"]::file-selector-button{font-size:12px;padding:6px 9px;margin-right:7px;border:0;border-radius:9px;color:var(--brand2);background:#e9f3f1;font-weight:700}
+    .filebox input[type="file"]::-webkit-file-upload-button{font-size:12px;padding:6px 9px;margin-right:7px;border:0;border-radius:9px;color:var(--brand2);background:#e9f3f1;font-weight:700}
+    @media(max-width:720px){
+      .quick-actions .btn{min-height:54px;font-size:16px;line-height:1.2}
+      .filebox input[type="file"]{font-size:11px}
+      .filebox input[type="file"]::file-selector-button,.filebox input[type="file"]::-webkit-file-upload-button{font-size:11px;padding:5px 8px;margin-right:5px}
+    }
   </style>
 </head>
 <body>

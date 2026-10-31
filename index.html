@@ -54,14 +54,24 @@
     .compression-status{display:block;margin-top:8px;color:var(--brand2);font-size:12px;font-weight:650}
     .import-summary{padding:12px;background:#f5fbf9;border:1px solid var(--line);border-radius:12px;line-height:1.6}
     .import-options{display:grid;gap:9px;margin-top:14px}.import-options label{display:flex;align-items:flex-start;gap:9px;padding:10px;border:1px solid var(--line);border-radius:12px}.import-options input{width:auto;margin-top:3px}
+
+    .quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.quick-actions .btn{display:flex;align-items:center;justify-content:center;gap:7px;min-height:48px}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-head h2{margin:0}.form-panel[hidden],.filters-wrap[hidden]{display:none}
+    .warranty-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:0 0 19px}.warranty-item{padding:11px;background:#fffaf5;border:1px solid #fedfba;border-radius:14px;cursor:pointer}.warranty-item strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.warranty-item span{color:var(--warning);font-size:12px;font-weight:700}.warranty-empty{padding:13px;color:var(--muted);background:#f5f8f7;border-radius:14px}
+    .list-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.list-top h2{margin:0}.list-controls{display:flex;gap:7px}.icon-btn{min-width:44px;min-height:44px;padding:8px 11px;border:0;border-radius:12px;background:#edf4f2;color:var(--brand2);font-weight:800}
+    .cards.compact{grid-template-columns:1fr}.cards.compact .card{grid-template-columns:minmax(0,1fr) auto;align-items:center}.cards.compact .cardbody{grid-template-columns:58px minmax(0,1fr)}.cards.compact .attachment-preview,.cards.compact .pdf-preview{width:58px;height:58px}.cards.compact .notes{display:none}.cards.compact .cardactions{padding:0}.cards.compact .warranty-badge{margin-top:5px}
+    .back-top{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:30;width:48px;height:48px;border:0;border-radius:50%;color:#fff;background:var(--brand);box-shadow:0 7px 20px rgba(15,118,110,.3);font-size:20px}.back-top[hidden]{display:none}
+    @media(max-width:720px){.quick-panel{margin-top:10px}.quick-actions{grid-template-columns:1fr 1fr}.warranty-strip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:3px}.warranty-item{min-width:210px;scroll-snap-align:start}.list-top{align-items:flex-start}.list-controls{flex-shrink:0}.cards.compact .card{grid-template-columns:1fr}.cards.compact .cardactions{display:none}}
   </style>
 </head>
 <body>
 <main class="app">
   <header><div class="brand"><div class="logo">▣</div><div><h1>Archiv účtenek</h1><p class="subtitle">Doklady bezpečně po ruce v tomto zařízení</p></div></div><div class="status" id="net">Online</div></header>
 
-  <section class="panel" id="formPanel">
-    <h2 id="formTitle">Přidat doklad</h2>
+  <section class="panel quick-panel"><div class="quick-actions"><button class="btn primary" id="showFormBtn" type="button">＋ Přidat doklad</button><button class="btn secondary" id="quickCameraBtn" type="button">📷 Vyfotit účtenku</button></div></section>
+
+  <section class="panel form-panel" id="formPanel" hidden>
+    <div class="section-head"><h2 id="formTitle">Přidat doklad</h2><button class="icon-btn" id="hideFormBtn" type="button" aria-label="Zavřít formulář">✕</button></div>
     <form id="receiptForm">
       <div class="grid">
         <label>Název dokladu *<input id="title" required maxlength="100" placeholder="Např. Fotoaparát"></label>
@@ -122,14 +132,16 @@
       <div class="stat"><strong id="statActive">0</strong><span>Aktivních záruk</span></div>
       <div class="stat"><strong id="statSoon">0</strong><span>Končí do 30 dnů</span></div>
     </div>
-    <h2>Uložené doklady</h2>
-    <div class="tools">
+    <h2>Nejbližší konce záruk</h2>
+    <div class="warranty-strip" id="warrantyStrip"></div>
+    <div class="list-top"><h2>Uložené doklady</h2><div class="list-controls"><button class="icon-btn" id="toggleFilters" type="button" aria-expanded="false">Filtry</button><button class="icon-btn" id="toggleView" type="button" aria-label="Přepnout zobrazení">☷</button></div></div>
+    <div class="filters-wrap" id="filtersWrap" hidden><div class="tools">
       <input id="search" type="search" placeholder="Hledat podle názvu, prodejce nebo čísla…">
       <select id="filter"><option value="">Všechny kategorie</option><option>Účtenka</option><option>Faktura</option><option>Záruční list</option><option>Smlouva</option><option>Jiné</option></select>
       <select id="warrantyFilter" aria-label="Filtrovat podle záruky"><option value="">Všechny záruky</option><option value="active">Aktivní</option><option value="30">Končí do 30 dnů</option><option value="90">Končí do 90 dnů</option><option value="expired">Prošlé</option><option value="none">Bez záruky</option></select>
       <select id="sort" aria-label="Řazení dokladů"><option value="newest">Nejnovější</option><option value="oldest">Nejstarší</option><option value="priceDesc">Nejdražší</option><option value="priceAsc">Nejlevnější</option><option value="title">Podle názvu</option><option value="vendor">Podle prodejce</option><option value="warranty">Nejbližší konec záruky</option></select>
       <button class="btn secondary" id="exportBtn" type="button">Export zálohy</button>
-    </div>
+    </div></div>
     <p class="count" id="count"></p><div class="cards" id="list"></div>
     <div class="actions"><label class="btn ghost" style="display:inline-block">Import zálohy<input id="importFile" type="file" accept="application/json,.json" hidden></label></div><p class="backup-status" id="backupStatus"></p>
   </section>
@@ -137,6 +149,7 @@
 </main>
 <dialog id="confirm"><h3>Smazat doklad?</h3><p>Tuto akci nelze vrátit zpět.</p><div class="actions"><button class="btn danger" id="confirmDelete">Smazat</button><button class="btn ghost" id="cancelDelete">Zrušit</button></div></dialog>
 <dialog id="importDialog"><h3>Import zálohy</h3><div class="import-summary" id="importSummary"></div><div class="import-options"><label><input type="radio" name="importMode" value="merge" checked><span><strong>Sloučit s archivem</strong><br><span class="filehint">Nové doklady se přidají, rozpoznané duplicity se přeskočí.</span></span></label><label><input type="radio" name="importMode" value="replace"><span><strong>Nahradit celý archiv</strong><br><span class="filehint">Současné doklady se smažou a nahradí obsahem zálohy.</span></span></label></div><div class="actions"><button class="btn primary" id="runImport" type="button">Provést import</button><button class="btn ghost" id="cancelImport" type="button">Zrušit</button></div></dialog>
+<button class="back-top" id="backTop" type="button" aria-label="Zpět nahoru" hidden>↑</button>
 <script>
 const DB='receipt-archive-db', STORE='receipts'; let db, editingId=null, deleteId=null, currentAttachment=null;
 const $=id=>document.getElementById(id);
@@ -172,9 +185,9 @@ async function selectAttachment(e){
 }
 $('file').addEventListener('change',selectAttachment);
 $('cameraFile').addEventListener('change',selectAttachment);
-$('receiptForm').addEventListener('submit',async e=>{e.preventDefault();const old=editingId?await get(editingId):{};const item={...old,title:$('title').value.trim(),vendor:$('vendor').value.trim(),date:$('date').value,amount:$('amount').value,currency:$('currency').value,category:$('category').value,warranty:$('warranty').value,number:$('number').value.trim(),notes:$('notes').value.trim(),updatedAt:new Date().toISOString()};if(editingId)item.id=editingId;else item.createdAt=item.updatedAt;if(currentAttachment)item.attachment=currentAttachment;await put(item);resetForm();await render()});
+$('receiptForm').addEventListener('submit',async e=>{e.preventDefault();const old=editingId?await get(editingId):{};const item={...old,title:$('title').value.trim(),vendor:$('vendor').value.trim(),date:$('date').value,amount:$('amount').value,currency:$('currency').value,category:$('category').value,warranty:$('warranty').value,number:$('number').value.trim(),notes:$('notes').value.trim(),updatedAt:new Date().toISOString()};if(editingId)item.id=editingId;else item.createdAt=item.updatedAt;if(currentAttachment)item.attachment=currentAttachment;await put(item);resetForm();$('formPanel').hidden=true;await render()});
 $('receiptForm').addEventListener('reset',()=>setTimeout(()=>{currentAttachment=null;$('preview').classList.remove('show')},0));$('cancelEdit').onclick=resetForm;
-async function edit(id){const x=await get(id);editingId=id;['title','vendor','date','amount','currency','category','warranty','number','notes'].forEach(k=>$(k).value=x[k]||'');let matched='';for(const m of ['3','6','12','24','36','48','60'])if(addMonths(x.date,m)===x.warranty)matched=m;if(matched){$('warrantyMode').value='months';$('warrantyMonths').value=matched}else{$('warrantyMode').value='date'}updateWarranty();currentAttachment=x.attachment||null;$('formTitle').textContent='Upravit doklad';$('saveBtn').textContent='Uložit změny';$('cancelEdit').hidden=false;if(x.attachment){$('fileName').textContent=x.attachment.name;$('preview').classList.add('show');if(x.attachment.type.startsWith('image/')){$('thumb').src=URL.createObjectURL(x.attachment.blob);$('thumb').style.display='block'}else $('thumb').style.display='none'}window.scrollTo({top:0,behavior:'smooth'})}
+async function edit(id){const x=await get(id);$('formPanel').hidden=false;editingId=id;['title','vendor','date','amount','currency','category','warranty','number','notes'].forEach(k=>$(k).value=x[k]||'');let matched='';for(const m of ['3','6','12','24','36','48','60'])if(addMonths(x.date,m)===x.warranty)matched=m;if(matched){$('warrantyMode').value='months';$('warrantyMonths').value=matched}else{$('warrantyMode').value='date'}updateWarranty();currentAttachment=x.attachment||null;$('formTitle').textContent='Upravit doklad';$('saveBtn').textContent='Uložit změny';$('cancelEdit').hidden=false;if(x.attachment){$('fileName').textContent=x.attachment.name;$('preview').classList.add('show');if(x.attachment.type.startsWith('image/')){$('thumb').src=URL.createObjectURL(x.attachment.blob);$('thumb').style.display='block'}else $('thumb').style.display='none'}window.scrollTo({top:0,behavior:'smooth'})}
 async function attachment(id){const x=await get(id);if(!x.attachment)return;const u=URL.createObjectURL(x.attachment.blob),a=document.createElement('a');a.href=u;a.download=x.attachment.name||'doklad';a.target='_blank';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}
 function askDelete(id){deleteId=id;$('confirm').showModal()}
 $('cancelDelete').onclick=()=>$('confirm').close();$('confirmDelete').onclick=async()=>{await remove(deleteId);$('confirm').close();if(editingId===deleteId)resetForm();render()};
@@ -183,9 +196,15 @@ function localDay(v){return v?new Date(v+'T12:00:00'):null}
 function daysTo(v){if(!v)return null;const today=new Date();today.setHours(12,0,0,0);return Math.round((localDay(v)-today)/86400000)}
 function warrantyInfo(v){const d=daysTo(v);if(d===null)return null;if(d<0)return {days:d,cls:'warranty-expired',text:d===-1?'Záruka skončila včera':`Záruka skončila před ${Math.abs(d)} dny`};if(d===0)return {days:d,cls:'warranty-urgent',text:'Záruka končí dnes'};if(d<=30)return {days:d,cls:'warranty-urgent',text:`Záruka končí za ${d} dní`};if(d<=90)return {days:d,cls:'warranty-soon',text:`Záruka končí za ${d} dní`};return {days:d,cls:'warranty-ok',text:`Záruka končí za ${d} dní`}}
 function sortItems(items,mode){const num=x=>Number(x.amount)||0;return items.sort((a,b)=>{if(mode==='oldest')return (a.date||a.createdAt||'').localeCompare(b.date||b.createdAt||'');if(mode==='priceDesc')return num(b)-num(a);if(mode==='priceAsc')return num(a)-num(b);if(mode==='title')return String(a.title||'').localeCompare(String(b.title||''),'cs',{sensitivity:'base'});if(mode==='vendor')return String(a.vendor||'').localeCompare(String(b.vendor||''),'cs',{sensitivity:'base'});if(mode==='warranty')return (a.warranty||'9999-12-31').localeCompare(b.warranty||'9999-12-31');return (b.date||b.createdAt||'').localeCompare(a.date||a.createdAt||'')})}
+function renderWarrantyStrip(items){
+  const upcoming=items.filter(x=>{const d=daysTo(x.warranty);return d!==null&&d>=0}).sort((a,b)=>a.warranty.localeCompare(b.warranty)).slice(0,6),box=$('warrantyStrip');
+  if(!upcoming.length){box.innerHTML='<div class="warranty-empty">Nemáš žádnou aktivní záruku.</div>';return}
+  box.innerHTML=upcoming.map(x=>{const d=daysTo(x.warranty);return `<button class="warranty-item" type="button" data-warranty-id="${x.id}"><strong>${esc(x.title)}</strong><span>${d===0?'Končí dnes':`Za ${d} dní`} · ${date(x.warranty)}</span></button>`}).join('');
+  box.querySelectorAll('[data-warranty-id]').forEach(b=>b.onclick=()=>edit(Number(b.dataset.warrantyId)));
+}
 async function render(){
   renderUrls.forEach(URL.revokeObjectURL);renderUrls=[];
-  const allItems=await all(),today=new Date();today.setHours(12,0,0,0);
+  const allItems=await all(),today=new Date();today.setHours(12,0,0,0);renderWarrantyStrip(allItems);
   const active=allItems.filter(x=>daysTo(x.warranty)>=0),soon=allItems.filter(x=>{const d=daysTo(x.warranty);return d!==null&&d>=0&&d<=30});
   $('statCount').textContent=allItems.length;
   const totalCzk=allItems.filter(x=>(x.currency||'CZK')==='CZK').reduce((sum,x)=>sum+(Number(x.amount)||0),0);
@@ -203,6 +222,12 @@ async function render(){
 }
 $('search').oninput=render;$('filter').onchange=render;$('warrantyFilter').onchange=render;$('sort').onchange=render;
 function blobToDataURL(blob){return new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(r.result);r.readAsDataURL(blob)})}function dataURLtoBlob(s){const [h,b]=s.split(','),m=h.match(/:(.*?);/)[1],a=atob(b),u=new Uint8Array(a.length);for(let i=0;i<a.length;i++)u[i]=a.charCodeAt(i);return new Blob([u],{type:m})}
+const VIEW_KEY='receiptArchiveCompactView';
+function openForm(camera=false){$('formPanel').hidden=false;setTimeout(()=>{$('formPanel').scrollIntoView({behavior:'smooth',block:'start'});if(camera)$('cameraFile').click();else $('title').focus()},80)}
+$('showFormBtn').onclick=()=>openForm(false);$('quickCameraBtn').onclick=()=>openForm(true);$('hideFormBtn').onclick=()=>{$('formPanel').hidden=true;resetForm()};
+$('toggleFilters').onclick=()=>{const hidden=!$('filtersWrap').hidden;$('filtersWrap').hidden=hidden;$('toggleFilters').setAttribute('aria-expanded',String(!hidden));$('toggleFilters').textContent=hidden?'Filtry':'Skrýt filtry'};
+function setCompact(on){$('list').classList.toggle('compact',on);$('toggleView').textContent=on?'▦':'☷';localStorage.setItem(VIEW_KEY,on?'1':'0')}$('toggleView').onclick=()=>setCompact(!$('list').classList.contains('compact'));setCompact(localStorage.getItem(VIEW_KEY)==='1');
+$('backTop').onclick=()=>scrollTo({top:0,behavior:'smooth'});addEventListener('scroll',()=>{$('backTop').hidden=scrollY<500},{passive:true});
 const BACKUP_KEY='receiptArchiveLastBackup';let pendingImport=null;
 function updateBackupStatus(){const raw=localStorage.getItem(BACKUP_KEY),el=$('backupStatus');if(!raw){el.textContent='Záloha zatím nebyla vytvořena.';el.className='backup-status warn';return}const d=new Date(raw),days=Math.floor((Date.now()-d.getTime())/86400000);el.textContent=`Poslední záloha: ${d.toLocaleDateString('cs-CZ')} (${days===0?'dnes':days===1?'před 1 dnem':`před ${days} dny`})`;el.className='backup-status'+(days>=30?' warn':'')}
 function fingerprint(x){return [x.number||'',x.date||'',Number(x.amount||0).toFixed(2),(x.vendor||'').trim().toLowerCase(),(x.title||'').trim().toLowerCase()].join('|')}

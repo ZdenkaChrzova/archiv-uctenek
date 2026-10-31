@@ -78,6 +78,15 @@
     /* v1.5.2: sjednoceni voleb prilohy */
     .filebox .actions > label.btn{background:var(--brand);color:#fff}
     .filebox .actions > label.btn:hover{background:var(--brand2)}
+
+    /* v1.5.3: zalohovani je vzdy dostupne mimo filtry */
+    .backup-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+    .backup-actions .btn{display:block;width:100%;min-height:48px;text-align:center}
+    .import-backup{overflow:hidden}
+    .import-backup input[type="file"]{display:block;width:100%;min-width:0;margin-top:8px;padding:7px;background:#fff;color:var(--muted);border:0;border-radius:10px;font-size:11px;line-height:1.15;font-weight:500}
+    .import-backup input[type="file"]::file-selector-button{padding:5px 7px;margin-right:5px;border:0;border-radius:8px;background:#e9f3f1;color:var(--brand2);font-size:10px;font-weight:700}
+    .import-backup input[type="file"]::-webkit-file-upload-button{padding:5px 7px;margin-right:5px;border:0;border-radius:8px;background:#e9f3f1;color:var(--brand2);font-size:10px;font-weight:700}
+    @media(max-width:720px){.backup-actions{grid-template-columns:1fr}.import-backup input[type="file"]{font-size:10px}.import-backup input[type="file"]::file-selector-button,.import-backup input[type="file"]::-webkit-file-upload-button{font-size:10px;padding:4px 6px}}
   </style>
 </head>
 <body>
@@ -156,10 +165,9 @@
       <select id="filter"><option value="">Všechny kategorie</option><option>Účtenka</option><option>Faktura</option><option>Záruční list</option><option>Smlouva</option><option>Jiné</option></select>
       <select id="warrantyFilter" aria-label="Filtrovat podle záruky"><option value="">Všechny záruky</option><option value="active">Aktivní</option><option value="30">Končí do 30 dnů</option><option value="90">Končí do 90 dnů</option><option value="expired">Prošlé</option><option value="none">Bez záruky</option></select>
       <select id="sort" aria-label="Řazení dokladů"><option value="newest">Nejnovější</option><option value="oldest">Nejstarší</option><option value="priceDesc">Nejdražší</option><option value="priceAsc">Nejlevnější</option><option value="title">Podle názvu</option><option value="vendor">Podle prodejce</option><option value="warranty">Nejbližší konec záruky</option></select>
-      <button class="btn secondary" id="exportBtn" type="button">Export zálohy</button>
-    </div></div>
+      </div></div>
     <p class="count" id="count"></p><div class="cards" id="list"></div>
-    <div class="actions"><label class="btn ghost" style="display:inline-block">Import zálohy<input id="importFile" type="file" accept="application/json,.json" hidden></label></div><p class="backup-status" id="backupStatus"></p>
+    <div class="backup-actions"><button class="btn primary" id="exportBtn" type="button">Export zálohy</button><label class="btn primary import-backup">Import zálohy<input id="importFile" type="file" accept="application/json,.json"></label></div><p class="backup-status" id="backupStatus"></p>
   </section>
   <footer>Data se neodesílají na internet. Vymazání dat prohlížeče může smazat i archiv, proto pravidelně používejte Export zálohy.</footer>
 </main>

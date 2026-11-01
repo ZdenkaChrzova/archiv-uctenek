@@ -186,7 +186,7 @@
 </head>
 <body>
 <main class="app">
-  <header><div class="brand"><div class="logo">▣</div><div><h1>Archiv účtenek <span class="version-chip">2.0.13</span></h1><p class="subtitle">Doklady bezpečně po ruce v tomto zařízení</p></div></div><div class="status" id="net">Online</div></header>
+  <header><div class="brand"><div class="logo">▣</div><div><h1>Archiv účtenek <span class="version-chip">2.0.14</span></h1><p class="subtitle">Doklady bezpečně po ruce v tomto zařízení</p></div></div><div class="status" id="net">Online</div></header>
 
   <section class="panel quick-panel"><button class="add-document-hero" id="showFormBtn" type="button"><span class="add-icon" aria-hidden="true">＋</span><span><strong>Přidat doklad</strong><small>Vyfotit účtenku nebo vybrat fotografii či PDF</small></span><span class="add-arrow" aria-hidden="true">›</span></button><button class="warranty-hero" id="toggleWarrantyPanel" type="button" aria-expanded="false" aria-controls="warrantyPanel"><span class="warranty-hero-icon" aria-hidden="true">✓</span><span><strong>Nejbližší konce záruk</strong><small id="warrantyHeroSummary">Zobrazit aktivní záruky</small></span><span class="warranty-chevron" aria-hidden="true">⌄</span></button><div class="warranty-panel" id="warrantyPanel" hidden><div class="warranty-strip" id="warrantyStrip"></div></div></section>
 
@@ -378,7 +378,7 @@ async function render(){
   let items=allItems;const q=$('search').value.trim().toLowerCase(),cat=$('filter').value,tag=$('tagFilter').value,wf=$('warrantyFilter').value;
   items=items.filter(x=>{const d=daysTo(x.warranty);const warrantyOk=!wf||(wf==='none'&&d===null)||(wf==='active'&&d!==null&&d>=0)||(wf==='30'&&d!==null&&d>=0&&d<=30)||(wf==='90'&&d!==null&&d>=0&&d<=90)||(wf==='expired'&&d!==null&&d<0);return (!cat||x.category===cat)&&(!tag||parseTags(x.tags).includes(tag))&&warrantyOk&&(!q||[x.title,x.vendor,x.number,x.notes,x.category,...parseTags(x.tags)].join(' ').toLowerCase().includes(q))});
   sortItems(items,$('sort').value);
-  $('count').textContent=items.length===1?'1 doklad':items.length<5?items.length+' doklady':items.length+' dokladů';$('listCountBadge').textContent=items.length;$('documentsHeroSummary').textContent=items.length===allItems.length?`${allItems.length} uložených dokladů`:`${items.length} z ${allItems.length} dokladů odpovídá filtrům`;$('list').innerHTML=items.length?'':`<div class="empty full">Zatím tu není žádný doklad odpovídající filtru.</div>`;
+  $('count').textContent=items.length===1?'1 doklad':items.length<5?items.length+' doklady':items.length+' dokladů';$('documentsHeroSummary').textContent=items.length===allItems.length?`${allItems.length} uložených dokladů`:`${items.length} z ${allItems.length} dokladů odpovídá filtrům`;$('list').innerHTML=items.length?'':`<div class="empty full">Zatím tu není žádný doklad odpovídající filtru.</div>`;
   for(const x of items){
     const el=document.createElement('article');el.className='card';const wi=warrantyInfo(x.warranty);let preview='';
     if(x.attachment){if(x.attachment.type?.startsWith('image/')){const u=URL.createObjectURL(x.attachment.blob);renderUrls.push(u);preview=`<img class="attachment-preview" src="${u}" alt="Náhled přílohy ${esc(x.title)}" data-a>`}else preview='<div class="pdf-preview" role="button" tabindex="0" aria-label="Otevřít PDF přílohu" data-a>PDF</div>'}
@@ -457,6 +457,6 @@ $('runImport').onclick=async()=>{if(!pendingImport)return;const mode=document.qu
 updateBackupStatus();
 function net(){ $('net').textContent=navigator.onLine?'Online':'Offline'}addEventListener('online',net);addEventListener('offline',net);net();
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js'));
-openDB().then(async()=>{await migrateLegacyTrash();const removed=await purgeExpiredTrash();await render()}).catch(()=>alert('Úložiště aplikace se nepodařilo otevřít.'));resetForm();
+openDB().then(async()=>{try{await migrateLegacyTrash();await purgeExpiredTrash();await render()}catch(err){console.error('Inicializace aplikace selhala:',err);$('documentsHeroSummary').textContent='Doklady se nepodařilo načíst';alert('Doklady se nepodařilo načíst: '+(err?.message||'neznámá chyba'))}}).catch(err=>{console.error('Otevření databáze selhalo:',err);$('documentsHeroSummary').textContent='Úložiště není dostupné';alert('Úložiště aplikace se nepodařilo otevřít.')});resetForm();
 </script>
 </body></html>

@@ -1,14 +1,26 @@
 {
-  "version": "2.7.2",
+  "version": "2.7.3",
   "date": "2026-11-06",
-  "title": "Vylepšený tmavý režim a čitelnost",
+  "title": "Jemné sjednocení vzhledu",
   "changes": [
-    "Zúžen přepínač světlého, tmavého a systémového režimu.",
-    "Tmavý režim má upravenou antracitovou paletu a vyšší kontrast.",
-    "Zvýrazněny hlavní nadpisy a zesvětleny doprovodné texty.",
-    "Opraveno sbalování aktivních a expirovaných dokladů."
+    "Sjednoceny rozměry a zarovnání hlavních panelů.",
+    "Zmenšeny mezery mezi sekcemi na mobilní obrazovce.",
+    "Tlačítko Koš má klidnější a méně dominantní vzhled.",
+    "Zvýrazněny názvy dokladů, prodejci a částky.",
+    "V tmavém režimu byly zjemněny rámečky a stíny karet."
   ],
   "history": [
+    {
+      "version": "2.7.3",
+      "date": "2026-11-06",
+      "changes": [
+        "Sjednoceny rozměry a zarovnání hlavních panelů.",
+        "Zmenšeny mezery mezi sekcemi na mobilní obrazovce.",
+        "Tlačítko Koš má klidnější a méně dominantní vzhled.",
+        "Zvýrazněny názvy dokladů, prodejci a částky.",
+        "V tmavém režimu byly zjemněny rámečky a stíny karet."
+      ]
+    },
     {
       "version": "2.7.2",
       "date": "2026-11-06",

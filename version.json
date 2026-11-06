@@ -1,24 +1,30 @@
 {
-  "version": "2.7.3",
+  "version": "2.7.4",
   "date": "2026-11-06",
-  "title": "Jemné sjednocení vzhledu",
+  "title": "Přepracovaný čitelný tmavý režim",
   "changes": [
-    "Sjednoceny rozměry a zarovnání hlavních panelů.",
-    "Zmenšeny mezery mezi sekcemi na mobilní obrazovce.",
-    "Tlačítko Koš má klidnější a méně dominantní vzhled.",
-    "Zvýrazněny názvy dokladů, prodejci a částky.",
-    "V tmavém režimu byly zjemněny rámečky a stíny karet."
+    "Tmavý režim byl přepracován pro vyšší čitelnost.",
+    "Světlé formuláře, prázdné stavy a informační plochy mají v tmavém režimu skutečně tmavé pozadí.",
+    "Zvýšen kontrast nadpisů, popisků, polí, filtrů a pomocných textů.",
+    "Systémový tmavý režim používá stejnou čitelnou paletu."
   ],
   "history": [
+    {
+      "version": "2.7.4",
+      "date": "2026-11-06",
+      "changes": [
+        "Tmavý režim byl přepracován pro vyšší čitelnost.",
+        "Světlé formuláře, prázdné stavy a informační plochy mají v tmavém režimu skutečně tmavé pozadí.",
+        "Zvýšen kontrast nadpisů, popisků, polí, filtrů a pomocných textů.",
+        "Systémový tmavý režim používá stejnou čitelnou paletu."
+      ]
+    },
     {
       "version": "2.7.3",
       "date": "2026-11-06",
       "changes": [
-        "Sjednoceny rozměry a zarovnání hlavních panelů.",
-        "Zmenšeny mezery mezi sekcemi na mobilní obrazovce.",
-        "Tlačítko Koš má klidnější a méně dominantní vzhled.",
-        "Zvýrazněny názvy dokladů, prodejci a částky.",
-        "V tmavém režimu byly zjemněny rámečky a stíny karet."
+        "Sjednoceny rozměry hlavních panelů a zmenšeny mezery.",
+        "Zjemněn vzhled Koše, karet a rámečků."
       ]
     },
     {

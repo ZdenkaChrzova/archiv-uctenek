@@ -1,24 +1,22 @@
 {
-  "version": "2.7.1",
+  "version": "2.7.2",
   "date": "2026-11-06",
-  "title": "Oprava sbalování a vzhledu",
+  "title": "Vylepšený tmavý režim a čitelnost",
   "changes": [
-    "Opraveno sbalování skupin Aktivní doklady a Expirované doklady.",
-    "Tmavý režim používá neutrální antracitovou paletu s tlumeným tyrkysovým akcentem.",
-    "Zjemněno zelené zvýraznění aktivních dokladů ve světlém režimu.",
-    "Přidán světlý, tmavý a systémový režim a rozdělení uložených dokladů.",
-    "Přidán copyright © 2026 Zdeňka Chrzová."
+    "Zúžen přepínač světlého, tmavého a systémového režimu.",
+    "Tmavý režim má upravenou antracitovou paletu a vyšší kontrast.",
+    "Zvýrazněny hlavní nadpisy a zesvětleny doprovodné texty.",
+    "Opraveno sbalování aktivních a expirovaných dokladů."
   ],
   "history": [
     {
-      "version": "2.7.1",
+      "version": "2.7.2",
       "date": "2026-11-06",
       "changes": [
-        "Opraveno sbalování skupin Aktivní doklady a Expirované doklady.",
-        "Tmavý režim používá neutrální antracitovou paletu s tlumeným tyrkysovým akcentem.",
-        "Zjemněno zelené zvýraznění aktivních dokladů ve světlém režimu.",
-        "Přidán světlý, tmavý a systémový režim a rozdělení uložených dokladů.",
-        "Přidán copyright © 2026 Zdeňka Chrzová."
+        "Zúžen přepínač světlého, tmavého a systémového režimu.",
+        "Tmavý režim má upravenou antracitovou paletu a vyšší kontrast.",
+        "Zvýrazněny hlavní nadpisy a zesvětleny doprovodné texty.",
+        "Opraveno sbalování aktivních a expirovaných dokladů."
       ]
     },
     {

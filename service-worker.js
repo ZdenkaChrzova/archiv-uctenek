@@ -1,4 +1,4 @@
-const CACHE='archiv-uctenek-v2.7.1';
+const CACHE='archiv-uctenek-v2.7.2';
 const ASSETS=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./version.json'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)))});
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting()});

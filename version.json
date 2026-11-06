@@ -1,14 +1,22 @@
 {
-  "version": "2.6.0",
+  "version": "2.6.1",
   "date": "2026-11-06",
-  "title": "Oznámení aktualizací",
+  "title": "Oprava ovládání aktualizačního okna",
   "changes": [
-    "Aplikace automaticky zjistí novou verzi publikovanou na GitHubu.",
-    "Uživatel uvidí přehled změn a může aktualizaci spustit jedním tlačítkem.",
-    "Do správy úložiště byla přidána historie verzí Co je nového.",
-    "Aktualizace zachová všechny uložené doklady, přílohy, záruky a reklamace."
+    "Opraveno tlačítko Rozumím v přehledu novinek.",
+    "Opraven křížek pro zavření okna s novinkami.",
+    "Opraveno tlačítko Připomenout později a ovládání historie verzí."
   ],
   "history": [
+    {
+      "version": "2.6.1",
+      "date": "2026-11-06",
+      "changes": [
+        "Opraveno tlačítko Rozumím v přehledu novinek.",
+        "Opraven křížek pro zavření okna s novinkami.",
+        "Opraveno tlačítko Připomenout později a ovládání historie verzí."
+      ]
+    },
     {
       "version": "2.6.0",
       "date": "2026-11-06",

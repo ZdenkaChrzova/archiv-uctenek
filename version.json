@@ -1,30 +1,35 @@
 {
-  "version": "2.7.4",
+  "version": "2.7.5",
   "date": "2026-11-06",
-  "title": "Přepracovaný čitelný tmavý režim",
+  "title": "Kontrastnější tmavý režim",
   "changes": [
-    "Tmavý režim byl přepracován pro vyšší čitelnost.",
-    "Světlé formuláře, prázdné stavy a informační plochy mají v tmavém režimu skutečně tmavé pozadí.",
-    "Zvýšen kontrast nadpisů, popisků, polí, filtrů a pomocných textů.",
-    "Systémový tmavý režim používá stejnou čitelnou paletu."
+    "Zvýšen kontrast sekcí Reklamace a Přehled archivu v tmavém režimu.",
+    "Statistické karty v přehledu archivu mají tmavé pozadí a světlé texty.",
+    "Zvýrazněny štítky 1. krok a číslo verze v hlavičce.",
+    "Zúžen přepínač barevného režimu.",
+    "Doplněna jednotná kontrastní paleta pro tmavý a systémový režim."
   ],
   "history": [
     {
-      "version": "2.7.4",
+      "version": "2.7.5",
       "date": "2026-11-06",
       "changes": [
-        "Tmavý režim byl přepracován pro vyšší čitelnost.",
-        "Světlé formuláře, prázdné stavy a informační plochy mají v tmavém režimu skutečně tmavé pozadí.",
-        "Zvýšen kontrast nadpisů, popisků, polí, filtrů a pomocných textů.",
-        "Systémový tmavý režim používá stejnou čitelnou paletu."
+        "Zvýšen kontrast sekcí Reklamace a Přehled archivu v tmavém režimu.",
+        "Statistické karty v přehledu archivu mají tmavé pozadí a světlé texty.",
+        "Zvýrazněny štítky 1. krok a číslo verze v hlavičce.",
+        "Zúžen přepínač barevného režimu.",
+        "Doplněna jednotná kontrastní paleta pro tmavý a systémový režim."
       ]
     },
     {
       "version": "2.7.3",
       "date": "2026-11-06",
       "changes": [
-        "Sjednoceny rozměry hlavních panelů a zmenšeny mezery.",
-        "Zjemněn vzhled Koše, karet a rámečků."
+        "Sjednoceny rozměry a zarovnání hlavních panelů.",
+        "Zmenšeny mezery mezi sekcemi na mobilní obrazovce.",
+        "Tlačítko Koš má klidnější a méně dominantní vzhled.",
+        "Zvýrazněny názvy dokladů, prodejci a částky.",
+        "V tmavém režimu byly zjemněny rámečky a stíny karet."
       ]
     },
     {

@@ -1,0 +1,51 @@
+{
+  "version": "2.6.0",
+  "date": "2026-11-06",
+  "title": "Oznámení aktualizací",
+  "changes": [
+    "Aplikace automaticky zjistí novou verzi publikovanou na GitHubu.",
+    "Uživatel uvidí přehled změn a může aktualizaci spustit jedním tlačítkem.",
+    "Do správy úložiště byla přidána historie verzí Co je nového.",
+    "Aktualizace zachová všechny uložené doklady, přílohy, záruky a reklamace."
+  ],
+  "history": [
+    {
+      "version": "2.6.0",
+      "date": "2026-11-06",
+      "changes": [
+        "Automatická kontrola nové verze.",
+        "Oznámení s přehledem změn.",
+        "Řízená aktualizace service workeru.",
+        "Historie verzí v aplikaci."
+      ]
+    },
+    {
+      "version": "2.5.6",
+      "date": "2026-11-06",
+      "changes": [
+        "Export termínu aktivní reklamace do kalendáře."
+      ]
+    },
+    {
+      "version": "2.5.5",
+      "date": "2026-11-06",
+      "changes": [
+        "Přehledné stažení a uložení kalendářové události."
+      ]
+    },
+    {
+      "version": "2.5.3",
+      "date": "2026-11-06",
+      "changes": [
+        "Export konce záruky do kalendáře."
+      ]
+    },
+    {
+      "version": "2.5.0",
+      "date": "2026-11-06",
+      "changes": [
+        "Upozornění na blížící se konec záruky."
+      ]
+    }
+  ]
+}

@@ -1,13 +1,24 @@
 {
-  "version": "2.6.1",
+  "version": "2.7.0",
   "date": "2026-11-06",
-  "title": "Oprava ovládání aktualizačního okna",
+  "title": "Motivy a rozdělení uložených dokladů",
   "changes": [
-    "Opraveno tlačítko Rozumím v přehledu novinek.",
-    "Opraven křížek pro zavření okna s novinkami.",
-    "Opraveno tlačítko Připomenout později a ovládání historie verzí."
+    "Přidán světlý, tmavý a systémový barevný režim s uložením volby.",
+    "Uložené doklady jsou rozdělené na aktivní a expirované, obě skupiny jsou sbalitelné.",
+    "Doklady bez uvedené záruky zůstávají mezi aktivními a mají nový štítek.",
+    "Přidány informace o verzi a copyright © 2026 Zdeňka Chrzová."
   ],
   "history": [
+    {
+      "version": "2.7.0",
+      "date": "2026-11-06",
+      "changes": [
+        "Přidán světlý, tmavý a systémový barevný režim s uložením volby.",
+        "Uložené doklady jsou rozdělené na aktivní a expirované, obě skupiny jsou sbalitelné.",
+        "Doklady bez uvedené záruky zůstávají mezi aktivními a mají nový štítek.",
+        "Přidány informace o verzi a copyright © 2026 Zdeňka Chrzová."
+      ]
+    },
     {
       "version": "2.6.1",
       "date": "2026-11-06",

@@ -1,22 +1,24 @@
 {
-  "version": "2.7.0",
+  "version": "2.7.1",
   "date": "2026-11-06",
-  "title": "Motivy a rozdělení uložených dokladů",
+  "title": "Oprava sbalování a vzhledu",
   "changes": [
-    "Přidán světlý, tmavý a systémový barevný režim s uložením volby.",
-    "Uložené doklady jsou rozdělené na aktivní a expirované, obě skupiny jsou sbalitelné.",
-    "Doklady bez uvedené záruky zůstávají mezi aktivními a mají nový štítek.",
-    "Přidány informace o verzi a copyright © 2026 Zdeňka Chrzová."
+    "Opraveno sbalování skupin Aktivní doklady a Expirované doklady.",
+    "Tmavý režim používá neutrální antracitovou paletu s tlumeným tyrkysovým akcentem.",
+    "Zjemněno zelené zvýraznění aktivních dokladů ve světlém režimu.",
+    "Přidán světlý, tmavý a systémový režim a rozdělení uložených dokladů.",
+    "Přidán copyright © 2026 Zdeňka Chrzová."
   ],
   "history": [
     {
-      "version": "2.7.0",
+      "version": "2.7.1",
       "date": "2026-11-06",
       "changes": [
-        "Přidán světlý, tmavý a systémový barevný režim s uložením volby.",
-        "Uložené doklady jsou rozdělené na aktivní a expirované, obě skupiny jsou sbalitelné.",
-        "Doklady bez uvedené záruky zůstávají mezi aktivními a mají nový štítek.",
-        "Přidány informace o verzi a copyright © 2026 Zdeňka Chrzová."
+        "Opraveno sbalování skupin Aktivní doklady a Expirované doklady.",
+        "Tmavý režim používá neutrální antracitovou paletu s tlumeným tyrkysovým akcentem.",
+        "Zjemněno zelené zvýraznění aktivních dokladů ve světlém režimu.",
+        "Přidán světlý, tmavý a systémový režim a rozdělení uložených dokladů.",
+        "Přidán copyright © 2026 Zdeňka Chrzová."
       ]
     },
     {

@@ -1,15 +1,32 @@
 {
-  "version": "2.7.5",
+  "version": "2.7.7",
   "date": "2026-11-06",
-  "title": "Kontrastnější tmavý režim",
+  "title": "Sjednocení režimu Podle zařízení",
   "changes": [
-    "Zvýšen kontrast sekcí Reklamace a Přehled archivu v tmavém režimu.",
-    "Statistické karty v přehledu archivu mají tmavé pozadí a světlé texty.",
-    "Zvýrazněny štítky 1. krok a číslo verze v hlavičce.",
-    "Zúžen přepínač barevného režimu.",
-    "Doplněna jednotná kontrastní paleta pro tmavý a systémový režim."
+    "Režim Podle zařízení nyní používá přímo stejný světlý nebo tmavý motiv jako ruční volba.",
+    "Při tmavém nastavení zařízení je barevné rozložení totožné s režimem Tmavý.",
+    "Změna systémového vzhledu se projeví automaticky bez restartu aplikace."
   ],
   "history": [
+    {
+      "version": "2.7.7",
+      "date": "2026-11-06",
+      "changes": [
+        "Režim Podle zařízení nyní používá přímo stejný světlý nebo tmavý motiv jako ruční volba.",
+        "Při tmavém nastavení zařízení je barevné rozložení totožné s režimem Tmavý.",
+        "Změna systémového vzhledu se projeví automaticky bez restartu aplikace."
+      ]
+    },
+    {
+      "version": "2.7.6",
+      "date": "2026-11-06",
+      "changes": [
+        "Zvýšen kontrast počítadla u Nejbližších konců záruk.",
+        "Přepracováno pole pro výběr souboru v Importu zálohy.",
+        "Odstraněny zbývající bílé plochy v tmavém a systémovém režimu.",
+        "Upraveny světlé ikony, upozornění, stavové štítky a validační zprávy."
+      ]
+    },
     {
       "version": "2.7.5",
       "date": "2026-11-06",
